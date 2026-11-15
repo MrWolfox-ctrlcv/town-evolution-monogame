@@ -1,0 +1,1515 @@
+{
+  "schema": 2,
+  "source": "../town-evolution/art/exports",
+  "pipeline": "glTF → OBJ + palette PNG → official MGCB → Model/Texture2D XNB",
+  "paletteColors": 212,
+  "assets": [
+    {
+      "id": "approved-pine-8",
+      "sourceBytes": 219235,
+      "sha256": "940cb84cd888a0bbaef59cce2268a58ac8158341f435fed4fe3ce3b0bc76fe10",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2544,
+      "triangles": 3392
+    },
+    {
+      "id": "approved-tree-7",
+      "sourceBytes": 1875264,
+      "sha256": "85e820ac6630f226e8a2dcc2fe91b47d84c2325b1cfd323b11abba7d1034bcb6",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 25273,
+      "triangles": 15976
+    },
+    {
+      "id": "bakery",
+      "sourceBytes": 391505,
+      "sha256": "143b497cbe9ce7f13e73cfdc825f1eb1347f66de637860926c907eedde261aa6",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 10008,
+      "triangles": 2160
+    },
+    {
+      "id": "boat",
+      "sourceBytes": 107487,
+      "sha256": "f355dab0f05d536acb90a6fa047aa7ac03b82edcfd2ead4aa85ff43404c927c7",
+      "footprint": [
+        1,
+        2
+      ],
+      "vertices": 1320,
+      "triangles": 660
+    },
+    {
+      "id": "compost-barrel",
+      "sourceBytes": 79048,
+      "sha256": "aee2b2baad0e5952866f4a201f6d92a2458ec36712df30a3620e04af74170a49",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1944,
+      "triangles": 460
+    },
+    {
+      "id": "crate",
+      "sourceBytes": 48983,
+      "sha256": "522d3c4afc7443615c1a94cc59f306562242a3b3dde182c44bf4e3d6a627e8a9",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1200,
+      "triangles": 268
+    },
+    {
+      "id": "crop-cell-lettuce-ready",
+      "sourceBytes": 211082,
+      "sha256": "184a53b0c76ce5fb9faea2ab39466393a0081b0fc569f5a8f70b174e737ead26",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 2928,
+      "triangles": 1392
+    },
+    {
+      "id": "crop-cell-lettuce-seedling",
+      "sourceBytes": 14396,
+      "sha256": "e9b99b536f2c59e1cc94881399735fbb72f680c283e856aefb60b59567fe04b1",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 180,
+      "triangles": 88
+    },
+    {
+      "id": "crop-cell-lettuce-young",
+      "sourceBytes": 59578,
+      "sha256": "65ef881b42b3fb7c98457aafac3e7dfccfc04c70372b7a855edbd74cd38b162c",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 808,
+      "triangles": 400
+    },
+    {
+      "id": "crop-cell-rice-ready",
+      "sourceBytes": 191766,
+      "sha256": "2509f197a9251d00bd9366a75b092cc86f124eb3f2c7173c6c99d74bc50c236c",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 2664,
+      "triangles": 3024
+    },
+    {
+      "id": "crop-cell-rice-seedling",
+      "sourceBytes": 32020,
+      "sha256": "b30ab7e6da4417b63c716ccc8f478cae68af6bba5199af919f23fdce29989cdc",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 468,
+      "triangles": 360
+    },
+    {
+      "id": "crop-cell-rice-young",
+      "sourceBytes": 47375,
+      "sha256": "458caf1cfd63445f09687113163a94f17fd2b33b8bf28f3e5b09baeeb96a9ef0",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 702,
+      "triangles": 540
+    },
+    {
+      "id": "crop-cell-vegetable-ready",
+      "sourceBytes": 160273,
+      "sha256": "5ea9b01f2c2a4908edd1a9d251c8aeb843e1385ab405ecf2cb6f0651b18acb50",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 2136,
+      "triangles": 2816
+    },
+    {
+      "id": "crop-cell-vegetable-seedling",
+      "sourceBytes": 93966,
+      "sha256": "7d0147dbb1fb6975df40b38c046f9018a0c10e410bd7a03411cc743021841b76",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 1248,
+      "triangles": 1632
+    },
+    {
+      "id": "crop-cell-vegetable-young",
+      "sourceBytes": 124863,
+      "sha256": "1f1721ee3ac1ce7fed7c59701afe571af538e87e9b9c4d08632f1f3aa5721fb8",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 1664,
+      "triangles": 2176
+    },
+    {
+      "id": "crop-cell-wheat-ready",
+      "sourceBytes": 380186,
+      "sha256": "d497199e9861b02b5c3bb178b60c8f1cd416c078e8d08a705be8a84c530de8d2",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 5376,
+      "triangles": 5760
+    },
+    {
+      "id": "crop-cell-wheat-seedling",
+      "sourceBytes": 16658,
+      "sha256": "244285abda993b48ee6d9191009422f92860522f92d654e1f9d192369ab3e4ce",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 234,
+      "triangles": 180
+    },
+    {
+      "id": "crop-cell-wheat-young",
+      "sourceBytes": 62741,
+      "sha256": "01875b43a2a4237b658942def4014b945c306a4dbd8f8e40803b2e6e37d9c212",
+      "footprint": [
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "vertices": 936,
+      "triangles": 720
+    },
+    {
+      "id": "farm-cell-bed-water",
+      "sourceBytes": 55784,
+      "sha256": "f77053a825f825468ed351834857678773ec52796b540b681cc64d0209f0af12",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 888,
+      "triangles": 452
+    },
+    {
+      "id": "farm-cell-bed",
+      "sourceBytes": 98399,
+      "sha256": "add0e45c97a523722d3c3563fabcf3f170ce39dce2ffa357905b17e9f9255c96",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 1590,
+      "triangles": 776
+    },
+    {
+      "id": "farm-with-box-water",
+      "sourceBytes": 120359,
+      "sha256": "9f6ba078b3c02baa201c65c34288cbde0a2b4532d3e2889214f34b576e163b42",
+      "footprint": [
+        3,
+        2
+      ],
+      "vertices": 2976,
+      "triangles": 720
+    },
+    {
+      "id": "farm-with-box",
+      "sourceBytes": 175649,
+      "sha256": "89b39ca7d8ee2991f1182c04ce69ea9424b1b11b90b5940af3b86767a9f45088",
+      "footprint": [
+        3,
+        2
+      ],
+      "vertices": 4380,
+      "triangles": 1044
+    },
+    {
+      "id": "handcart",
+      "sourceBytes": 111107,
+      "sha256": "40c33e774286dfc8419d8a979759dc29d4e479dffadc45549b550074f0705935",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2640,
+      "triangles": 768
+    },
+    {
+      "id": "house",
+      "sourceBytes": 78422,
+      "sha256": "e5b33b6c8d05472970f7b96c6ab5191579a92921ba06b90418b4348cf3643d5e",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 1260,
+      "triangles": 624
+    },
+    {
+      "id": "mill",
+      "sourceBytes": 177547,
+      "sha256": "377c9ae5afe4cc55a6f16cadd697a66a407bae3b170fb66e1b14130397bb6747",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 4368,
+      "triangles": 1116
+    },
+    {
+      "id": "natural-block-grass",
+      "sourceBytes": 10703,
+      "sha256": "c93cb46adb0830f1463979790478d7f2721cbebb6abd62cca973d0f0033610fe",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 129,
+      "triangles": 162
+    },
+    {
+      "id": "natural-block-soil",
+      "sourceBytes": 10701,
+      "sha256": "e872877967e0a7dc6e6c3b3266c876267827aa63d40ec0e5763225589389bce6",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 129,
+      "triangles": 162
+    },
+    {
+      "id": "natural-block-stone",
+      "sourceBytes": 7053,
+      "sha256": "ea2a564fbcdea3731d4ef6b1ec076fcfb3ae9cccefd0af61958e1c1badf6900c",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 96,
+      "triangles": 48
+    },
+    {
+      "id": "nursery-empty",
+      "sourceBytes": 122611,
+      "sha256": "72fb5537e09437e81b027e2509c0f994740ee107ee8e7de8858abb4a3fdc1f0a",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 3168,
+      "triangles": 600
+    },
+    {
+      "id": "nursery-growing",
+      "sourceBytes": 152712,
+      "sha256": "29dabb3cdea9d02c8aed8e8c7b334f8b45b623e0267164ad750ccfff5c7cd783",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 3876,
+      "triangles": 832
+    },
+    {
+      "id": "nursery-ready",
+      "sourceBytes": 163205,
+      "sha256": "df7cd147baa37886d8c62fa5a655a5bc9ca8bf655602071a2ca91e7bbd431027",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 4076,
+      "triangles": 960
+    },
+    {
+      "id": "nursery-seeded",
+      "sourceBytes": 158456,
+      "sha256": "e992644a9cc477f4f9deb94283515bb0814410dbf97f8baf8fc1fc86291669eb",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 4128,
+      "triangles": 760
+    },
+    {
+      "id": "order-board",
+      "sourceBytes": 16857,
+      "sha256": "f19a826a2e251bc83022cf83bd5fdae0e4f619e089d8c595884f73eba93ee6f4",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 384,
+      "triangles": 80
+    },
+    {
+      "id": "pile-bread-1",
+      "sourceBytes": 33791,
+      "sha256": "94c6a168c2027f5252e16614e201d1b87beda6c24d5c0641e8121c7942264764",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 552,
+      "triangles": 196
+    },
+    {
+      "id": "pile-bread-2",
+      "sourceBytes": 66361,
+      "sha256": "6794a572079349f2ad174a0caef231dccfce72072818675752e6677c9c4d8280",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1104,
+      "triangles": 392
+    },
+    {
+      "id": "pile-bread-3",
+      "sourceBytes": 98951,
+      "sha256": "da940b3c8059f2e73734ffb475c390bb0ac633f5199eecbff9e70dfd38246158",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1656,
+      "triangles": 588
+    },
+    {
+      "id": "pile-bread-4",
+      "sourceBytes": 131525,
+      "sha256": "0584aee381a4e5440be9e6b26fef42def84c0642af630e126e42bdaffd77d4ab",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2208,
+      "triangles": 784
+    },
+    {
+      "id": "pile-bread-5",
+      "sourceBytes": 164104,
+      "sha256": "34f82bed7449f9e618c7c47ac2f98fc6a90e2ae7c9d4195d10db75003272e055",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2760,
+      "triangles": 980
+    },
+    {
+      "id": "pile-flour-1",
+      "sourceBytes": 37256,
+      "sha256": "78d223481a2170f834021d8150b6dca02d44249ba7c247e085c2dbdb8f144140",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 588,
+      "triangles": 292
+    },
+    {
+      "id": "pile-flour-2",
+      "sourceBytes": 73284,
+      "sha256": "95eaaa3214ed10a2fe3f89b9ed23b4776e656308913b8fd439b75c718d71ab88",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1176,
+      "triangles": 584
+    },
+    {
+      "id": "pile-flour-3",
+      "sourceBytes": 109333,
+      "sha256": "289af220c429a7da79c55ede6516ca97a6fab11b080937c61fd2c7c8625c6222",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1764,
+      "triangles": 876
+    },
+    {
+      "id": "pile-flour-4",
+      "sourceBytes": 145365,
+      "sha256": "2430b2deb75fe1a1c8fb6ce126286757e4214c29d5339617a9c99832deb29a54",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2352,
+      "triangles": 1168
+    },
+    {
+      "id": "pile-flour-5",
+      "sourceBytes": 181398,
+      "sha256": "969683411c69c7ea4beed67f092e80f0e0386e07f27c3778a96f42aa07386549",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2940,
+      "triangles": 1460
+    },
+    {
+      "id": "pile-lettuce-1",
+      "sourceBytes": 37009,
+      "sha256": "0d95b2a4281e2a81d6665c9dd9ee1560a7ac3870b5fa47a5c74b9bfc02ce57ea",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 588,
+      "triangles": 280
+    },
+    {
+      "id": "pile-lettuce-10",
+      "sourceBytes": 359583,
+      "sha256": "909c7aa32dc0ac062c32d447ce19e1a4c0ad65190afb74c2504a9a9b1c9dd9f5",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 5880,
+      "triangles": 2800
+    },
+    {
+      "id": "pile-lettuce-2",
+      "sourceBytes": 72857,
+      "sha256": "80174719f136a2a7acfabfc51695348a4664de7b24e82274a86059723010a8fb",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1176,
+      "triangles": 560
+    },
+    {
+      "id": "pile-lettuce-3",
+      "sourceBytes": 108698,
+      "sha256": "d8880bf116aca9dd5629f57f9b928380c0bba57e5d345d9869bedb99cf65b5bb",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1764,
+      "triangles": 840
+    },
+    {
+      "id": "pile-lettuce-4",
+      "sourceBytes": 144539,
+      "sha256": "ae37423af86e678d0700b03dfea1e28ac76046cd1d7be4cab4ba08eaa6d42da3",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2352,
+      "triangles": 1120
+    },
+    {
+      "id": "pile-lettuce-5",
+      "sourceBytes": 180380,
+      "sha256": "8456fd942932c41f5f0a7ade80c2919bfabfa7ff637944f3f20f3c9dc80616c6",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2940,
+      "triangles": 1400
+    },
+    {
+      "id": "pile-lettuce-6",
+      "sourceBytes": 216220,
+      "sha256": "4e78270e1a6e4c064fba8b24cf97146750b9aa0d43b613d9aa0c67da507cd5cd",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 3528,
+      "triangles": 1680
+    },
+    {
+      "id": "pile-lettuce-7",
+      "sourceBytes": 252060,
+      "sha256": "6d17cd40a11d1df9b9f41f78781d8dfc2c03b40ac1d135757d8abc4346c6eb6a",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 4116,
+      "triangles": 1960
+    },
+    {
+      "id": "pile-lettuce-8",
+      "sourceBytes": 287901,
+      "sha256": "6336f8b50ea806cdb7a558b5c74d9da8c89d276e4437358c960daa2a120e340a",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 4704,
+      "triangles": 2240
+    },
+    {
+      "id": "pile-lettuce-9",
+      "sourceBytes": 323741,
+      "sha256": "1e6554b46e292581fd0b641d2e5358060a1a7c130ebfca8d93bf835223eaabdf",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 5292,
+      "triangles": 2520
+    },
+    {
+      "id": "pile-milledRice-1",
+      "sourceBytes": 26321,
+      "sha256": "50c10084d24f86fa16fe6f0fcfa459ebf9d95f8ea8a3655a552787ad917d023f",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 390,
+      "triangles": 268
+    },
+    {
+      "id": "pile-milledRice-2",
+      "sourceBytes": 51400,
+      "sha256": "8ae8cffe2abaf8edc9161a01cbd20a2fd934555c603e4cbfba8ac78dc612ed5c",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 780,
+      "triangles": 536
+    },
+    {
+      "id": "pile-milledRice-3",
+      "sourceBytes": 76510,
+      "sha256": "cc847b9efe39b8f783d97bfbdc855c29da26f89305e23991b412d193d0fd03ae",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1170,
+      "triangles": 804
+    },
+    {
+      "id": "pile-milledRice-4",
+      "sourceBytes": 101598,
+      "sha256": "2979218bc69ba72323dd2617b6716941013422d33f48bee314dd225c42b52521",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1560,
+      "triangles": 1072
+    },
+    {
+      "id": "pile-milledRice-5",
+      "sourceBytes": 126686,
+      "sha256": "c4fd5e692450fe7718c25bbc7d89053fed2668e42c27cd4d879a83df07d0d4bb",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1950,
+      "triangles": 1340
+    },
+    {
+      "id": "pile-mud-1",
+      "sourceBytes": 6983,
+      "sha256": "0773b4078c18ed00e42e556e62b25a22a0364d49c9a7f77523723814beca30f5",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 96,
+      "triangles": 44
+    },
+    {
+      "id": "pile-mud-2",
+      "sourceBytes": 12810,
+      "sha256": "f678646d25993fc5e7d08f8e188de9d3f5d9bc7aa89838b2370aeec9b3c61fa4",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 192,
+      "triangles": 88
+    },
+    {
+      "id": "pile-mud-3",
+      "sourceBytes": 18665,
+      "sha256": "c1b8cfe0541e8b9e7c271e1b8f460d78215870e2363a53a25b3ef9d243c73421",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 288,
+      "triangles": 132
+    },
+    {
+      "id": "pile-mud-4",
+      "sourceBytes": 24489,
+      "sha256": "054165bccf5f375640d3f233e5ded1c704a1d3d6de2de06b88ea9be00afd7fb2",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 384,
+      "triangles": 176
+    },
+    {
+      "id": "pile-mud-5",
+      "sourceBytes": 30314,
+      "sha256": "a8b285be126a86ebcead3780e815a3ea2bc05f6194cc5ae353e66bfb0bbfb19d",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 480,
+      "triangles": 220
+    },
+    {
+      "id": "pile-mud-6",
+      "sourceBytes": 36138,
+      "sha256": "d0c44e38fcac450c693bd7388475c016d9c539f93419a87a5327db2f61332839",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 576,
+      "triangles": 264
+    },
+    {
+      "id": "pile-mud-7",
+      "sourceBytes": 41991,
+      "sha256": "bc307758c5a793e3c0aab7f0c8ee4055bbe7086d253b89ec0daf4fae1d70f51a",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 672,
+      "triangles": 308
+    },
+    {
+      "id": "pile-mud-8",
+      "sourceBytes": 47816,
+      "sha256": "3d0be0a438b21deaa9622f1cfed3ed8904b4cf77936f4c38e1858611d0c6f14f",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 768,
+      "triangles": 352
+    },
+    {
+      "id": "pile-mud-9",
+      "sourceBytes": 65422,
+      "sha256": "ad087dced83d1955aefc6b7530fed3642b49ffa6702e97a91225134d829f5496",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1056,
+      "triangles": 492
+    },
+    {
+      "id": "pile-rice-1",
+      "sourceBytes": 21001,
+      "sha256": "4af101bad4981d4b49684f10b96f192f83ce0229b15cb43df5d6deac73530265",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 258,
+      "triangles": 376
+    },
+    {
+      "id": "pile-rice-10",
+      "sourceBytes": 198999,
+      "sha256": "31484f91425e3052b79d216d4e4bebd0d9e4ae6afc48d745800294c31cea5bf8",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2580,
+      "triangles": 3760
+    },
+    {
+      "id": "pile-rice-2",
+      "sourceBytes": 40776,
+      "sha256": "667d840ee6d951c54426666f138367e370e11c6732c04a08f32bcd9176a93742",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 516,
+      "triangles": 752
+    },
+    {
+      "id": "pile-rice-3",
+      "sourceBytes": 60553,
+      "sha256": "1cb48ca2595b96f1f40b8522525c0ab944b29cdd3483b2f6f36fc646bdac1380",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 774,
+      "triangles": 1128
+    },
+    {
+      "id": "pile-rice-4",
+      "sourceBytes": 80337,
+      "sha256": "fb6ff7c65807c779e7c0d8d4a7e127bf12d0b395651663b9fd3ceacb86ad74d2",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1032,
+      "triangles": 1504
+    },
+    {
+      "id": "pile-rice-5",
+      "sourceBytes": 100113,
+      "sha256": "0dc5974c0acc82dc4977695e08b8ee076fe32788a68a55e19497997ac1dd985e",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1290,
+      "triangles": 1880
+    },
+    {
+      "id": "pile-rice-6",
+      "sourceBytes": 119890,
+      "sha256": "43b8a695df7d61efa842804dbf23aa8eddb3aeab7e630f10ff27462b6a60d988",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1548,
+      "triangles": 2256
+    },
+    {
+      "id": "pile-rice-7",
+      "sourceBytes": 139667,
+      "sha256": "9020cd1cb6941b40724f974a1f5b80ae6432e284baf235ebc1b19f84acf243b9",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1806,
+      "triangles": 2632
+    },
+    {
+      "id": "pile-rice-8",
+      "sourceBytes": 159443,
+      "sha256": "e37f8c2bd3915253732eb741e36f31f8be8179becc3106de7b5c333010f09d7f",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2064,
+      "triangles": 3008
+    },
+    {
+      "id": "pile-rice-9",
+      "sourceBytes": 179220,
+      "sha256": "41da8c52bdea37dfb25f8de7c15db237ab2164f890be536b7e963e7de01dd347",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2322,
+      "triangles": 3384
+    },
+    {
+      "id": "pile-roastedCarrot-1",
+      "sourceBytes": 105872,
+      "sha256": "68037111c511013cbdb321f081533b65834401c46bc869d4145a9b54804e48a1",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2136,
+      "triangles": 1108
+    },
+    {
+      "id": "pile-roastedCarrot-2",
+      "sourceBytes": 209712,
+      "sha256": "bbfe74dabf548466c8aefdb06d04c73c3f4c6b8b5d2f74632c45cd22a6285b76",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 4272,
+      "triangles": 2216
+    },
+    {
+      "id": "pile-roastedCarrot-3",
+      "sourceBytes": 313495,
+      "sha256": "72b06f721cab83ebcbc2e7c2e8cc652c7f4811082087bcfe8c68dff7b6d3b56c",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 6408,
+      "triangles": 3324
+    },
+    {
+      "id": "pile-roastedCarrot-4",
+      "sourceBytes": 417330,
+      "sha256": "19034909a704feb254d780543640e151b61b5ef53f55c9c5cf2c6c7e46f8107a",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 8544,
+      "triangles": 4432
+    },
+    {
+      "id": "pile-roastedCarrot-5",
+      "sourceBytes": 521138,
+      "sha256": "317888cfc2181e437ef3c919ccb455d6e848fc63b28070ce9e10f6d48b94714c",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 10680,
+      "triangles": 5540
+    },
+    {
+      "id": "pile-sapling-1",
+      "sourceBytes": 35314,
+      "sha256": "c37bdedc864d6d5888dbc988baf83d18682aaf11a4b5de290f2c6ff202039f67",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 502,
+      "triangles": 456
+    },
+    {
+      "id": "pile-sapling-2",
+      "sourceBytes": 69361,
+      "sha256": "f703a21711defa8a03bba1ba320a652f19500704eb1d162a2a61888ccb881480",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1004,
+      "triangles": 912
+    },
+    {
+      "id": "pile-sapling-3",
+      "sourceBytes": 103430,
+      "sha256": "65a748d4ae67e7bab5cebd6c362feb6b2f45e05baa4e1c28e4d14549d8928f92",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1506,
+      "triangles": 1368
+    },
+    {
+      "id": "pile-sapling-4",
+      "sourceBytes": 137531,
+      "sha256": "2f3404dd14420f727a2ba969e760fe5f2f893ce8ab5831c92a7c10f65dfd0be9",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2008,
+      "triangles": 1824
+    },
+    {
+      "id": "pile-sapling-5",
+      "sourceBytes": 171586,
+      "sha256": "5d3fbcce375496194f194317dcbf468c7d94ae3042206c344a0dfe83ad6947c4",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2510,
+      "triangles": 2280
+    },
+    {
+      "id": "pile-soil-1",
+      "sourceBytes": 4102,
+      "sha256": "fc9f6e56e187fb09a5437fdaff7da02bf0d3c388ae0a58feb413bf48924e37e5",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 48,
+      "triangles": 20
+    },
+    {
+      "id": "pile-soil-2",
+      "sourceBytes": 6987,
+      "sha256": "684aa278c531b3f184c5b47646f52c46011b02b55051285d266b7a981eb36c55",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 96,
+      "triangles": 40
+    },
+    {
+      "id": "pile-soil-3",
+      "sourceBytes": 9870,
+      "sha256": "201603c72995776472cc6c733233c7fac6dfd6daeb91a809694bd592f21a8d50",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 144,
+      "triangles": 60
+    },
+    {
+      "id": "pile-soil-4",
+      "sourceBytes": 12751,
+      "sha256": "38bb55fdce85393867f111502f4c05a974544e89452835eb5273d4093cb98a3f",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 192,
+      "triangles": 80
+    },
+    {
+      "id": "pile-soil-5",
+      "sourceBytes": 15632,
+      "sha256": "b8e7e9477180999f19638ff814d7e10d4723af6a846d5c77cb1b6d1f31666f6a",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 240,
+      "triangles": 100
+    },
+    {
+      "id": "pile-stone-1",
+      "sourceBytes": 16724,
+      "sha256": "e31bf93719b9049dd60dc83de09315de4e00867abb7fbbf6dd03f80e9402e5d2",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 264,
+      "triangles": 88
+    },
+    {
+      "id": "pile-stone-2",
+      "sourceBytes": 32212,
+      "sha256": "38e244bf7f75a5ce192e4692ca02c3d73e48f09a81036ebcd0cfbc8337ca9fa9",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 528,
+      "triangles": 176
+    },
+    {
+      "id": "pile-stone-3",
+      "sourceBytes": 47702,
+      "sha256": "5e8d97273f6c11c7bee38f6a5b89ce9d28f431beeca5cd8b960bad4419930050",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 792,
+      "triangles": 264
+    },
+    {
+      "id": "pile-stone-4",
+      "sourceBytes": 63198,
+      "sha256": "2223404285fb5b286fd6d95da89f8e038e81c0a86caf3e92eaeb28178cfcd552",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1056,
+      "triangles": 352
+    },
+    {
+      "id": "pile-stone-5",
+      "sourceBytes": 78686,
+      "sha256": "e5d0585baf109b355a8dc2bef2d9af049f3652ff40bf5bafaef930c756557669",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1320,
+      "triangles": 440
+    },
+    {
+      "id": "pile-stone-6",
+      "sourceBytes": 94174,
+      "sha256": "a01cf4d805e5e01814f16fcd10775680d1ecfd8c239b765e57432b521bcd1525",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1584,
+      "triangles": 528
+    },
+    {
+      "id": "pile-treeSeed-1",
+      "sourceBytes": 31643,
+      "sha256": "3805dcbb6b438a5a118c5446530943a17191d8683a680204a853fbf5dec85dcd",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 516,
+      "triangles": 180
+    },
+    {
+      "id": "pile-treeSeed-2",
+      "sourceBytes": 62049,
+      "sha256": "a56df38cd0c130b33b33360ac1532495d3c85466648b94bda697fb392d92909e",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1032,
+      "triangles": 360
+    },
+    {
+      "id": "pile-treeSeed-3",
+      "sourceBytes": 92449,
+      "sha256": "e4f175afdce4a1bb54ce1f6aee6562de39780a157e51cf702e7884964137f3ba",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1548,
+      "triangles": 540
+    },
+    {
+      "id": "pile-treeSeed-4",
+      "sourceBytes": 122848,
+      "sha256": "a88955abeaef4e73de257f0d1bb2a591d9e7716f2260d693aa5fa31785ad873e",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2064,
+      "triangles": 720
+    },
+    {
+      "id": "pile-treeSeed-5",
+      "sourceBytes": 153251,
+      "sha256": "73364546a80649a48f194a5c82c2f0df84cd5d4f04570a2cafaccd7224e748e2",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2580,
+      "triangles": 900
+    },
+    {
+      "id": "pile-vegetable-1",
+      "sourceBytes": 26068,
+      "sha256": "c730a150dde4f79ac0b63e3bf3fd97bb9965f28be86a07a310be44b34e6e2064",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 330,
+      "triangles": 452
+    },
+    {
+      "id": "pile-vegetable-10",
+      "sourceBytes": 249567,
+      "sha256": "098a7c639c56811638e6a439a9fbe055db69ab148861307af89a18de9ec81b50",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 3300,
+      "triangles": 4520
+    },
+    {
+      "id": "pile-vegetable-2",
+      "sourceBytes": 50901,
+      "sha256": "88a6a4815a9948f778fd7232bca0ef6a551ba598a3ce0f4de093d7ccc593f8f3",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 660,
+      "triangles": 904
+    },
+    {
+      "id": "pile-vegetable-3",
+      "sourceBytes": 75735,
+      "sha256": "da0e879c7255ae81019e18f2c7eafc25c206173a606d972e43d69100bc8ae014",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 990,
+      "triangles": 1356
+    },
+    {
+      "id": "pile-vegetable-4",
+      "sourceBytes": 100571,
+      "sha256": "bf661dc06802a1d4bac40861fc5f1064d5ace985ca40bc0a7b0cbe2316b241db",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1320,
+      "triangles": 1808
+    },
+    {
+      "id": "pile-vegetable-5",
+      "sourceBytes": 125403,
+      "sha256": "ac6bd1790b6044d945a331597fc4b84087fe5b67c481c79c15249f02052cda28",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1650,
+      "triangles": 2260
+    },
+    {
+      "id": "pile-vegetable-6",
+      "sourceBytes": 150237,
+      "sha256": "ad96402094dca65624dbc9b54e7bd735450e2088fb2958fc8e3347102b59e770",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1980,
+      "triangles": 2712
+    },
+    {
+      "id": "pile-vegetable-7",
+      "sourceBytes": 175069,
+      "sha256": "5361bf93f5617e5e188a1336fc8ba2749ffcaa3faa0ee8ed5f0f7a20034c6770",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2310,
+      "triangles": 3164
+    },
+    {
+      "id": "pile-vegetable-8",
+      "sourceBytes": 199902,
+      "sha256": "9917335dda7803c717974bd03b2ac906b123770c547f5e5e0d4dada2e4043a02",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2640,
+      "triangles": 3616
+    },
+    {
+      "id": "pile-vegetable-9",
+      "sourceBytes": 224735,
+      "sha256": "9a552673189c1941a09e11aa62e2b25cb36a352a8875b41bc85dc5664ef925e0",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2970,
+      "triangles": 4068
+    },
+    {
+      "id": "pile-wheat-1",
+      "sourceBytes": 21001,
+      "sha256": "cf5495b6978d305d9af57f6c9e568fbbcca33aef16220d40fda84e02b6f83e48",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 258,
+      "triangles": 376
+    },
+    {
+      "id": "pile-wheat-10",
+      "sourceBytes": 198998,
+      "sha256": "4442e5a904cdb64f2cbc19c518b63de364af87dd6b66973288a60cb50831d1b7",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2580,
+      "triangles": 3760
+    },
+    {
+      "id": "pile-wheat-2",
+      "sourceBytes": 40780,
+      "sha256": "ec9142c8ff367751cf853273a8f6e27418feec7e96453a73f261ebfcbfd386b3",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 516,
+      "triangles": 752
+    },
+    {
+      "id": "pile-wheat-3",
+      "sourceBytes": 60556,
+      "sha256": "9c611e4ff8e7378affbf26489f373b428d9d5d439aa3071b46650b2904209f8e",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 774,
+      "triangles": 1128
+    },
+    {
+      "id": "pile-wheat-4",
+      "sourceBytes": 80338,
+      "sha256": "1122f6e0464e24fb8cc77527b13909f4c2ffd61a6d33ed31b420adde27820bac",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1032,
+      "triangles": 1504
+    },
+    {
+      "id": "pile-wheat-5",
+      "sourceBytes": 100113,
+      "sha256": "5a8b91b9898b8287a7e4c6e2f0895350f4b0b5968b74b3cf0225f4f99a56685c",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1290,
+      "triangles": 1880
+    },
+    {
+      "id": "pile-wheat-6",
+      "sourceBytes": 119889,
+      "sha256": "041881f0dbfb7e78a1ff79ea8d0b20ab21014415fed5839a4e3287787b148fd2",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1548,
+      "triangles": 2256
+    },
+    {
+      "id": "pile-wheat-7",
+      "sourceBytes": 139666,
+      "sha256": "672cd09116500ba9061710291cfe64a75944efa6a63c50ce01efce84b5219ee2",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1806,
+      "triangles": 2632
+    },
+    {
+      "id": "pile-wheat-8",
+      "sourceBytes": 159444,
+      "sha256": "6b479c424a39320a6ebe59bf1588b52877720939a82fa2386c8825fb9cb606d8",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2064,
+      "triangles": 3008
+    },
+    {
+      "id": "pile-wheat-9",
+      "sourceBytes": 179221,
+      "sha256": "d397ed76994b69e7909c384f22c2cdb47e59f593f1036b208bad6557967a655c",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 2322,
+      "triangles": 3384
+    },
+    {
+      "id": "pile-wood-1",
+      "sourceBytes": 16986,
+      "sha256": "bf5b497d88fe8042d7629a2d63e324cf6c4c6ecd9bee220a67e181c02112eade",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 252,
+      "triangles": 148
+    },
+    {
+      "id": "pile-wood-2",
+      "sourceBytes": 36920,
+      "sha256": "8efeac9d5c0feeed4a73e7cc7b0fd774134e6b2c9b9bbbc28d4cc0528130a1e0",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 552,
+      "triangles": 392
+    },
+    {
+      "id": "pile-wood-3",
+      "sourceBytes": 52729,
+      "sha256": "b3bce11f6fcdf409380c866099065738bd5f8e09748933ad076eca394fd861a7",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 804,
+      "triangles": 540
+    },
+    {
+      "id": "pile-wood-4",
+      "sourceBytes": 68542,
+      "sha256": "98768f9647ac4bf3c549eb9a911b2c46b4ab4975c9d2f739d1da34fbcd293ea4",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1056,
+      "triangles": 688
+    },
+    {
+      "id": "pile-wood-5",
+      "sourceBytes": 84351,
+      "sha256": "a44a134011942b6520a3d1f5ba515ffa4e2ca545f099c2f4c50b82ca136e1d52",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1308,
+      "triangles": 836
+    },
+    {
+      "id": "pile-wood-6",
+      "sourceBytes": 100159,
+      "sha256": "79b0bf0c1e0f0239a9e31db069f9135f82c4f1e68b1d3b9c2417ce03a70ac4b1",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1560,
+      "triangles": 984
+    },
+    {
+      "id": "residence",
+      "sourceBytes": 148256,
+      "sha256": "aa03c849c5dd04d886a827dd5ec65305c10b60366def1939e190ef59c3ed4af9",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 2430,
+      "triangles": 1088
+    },
+    {
+      "id": "shop",
+      "sourceBytes": 245031,
+      "sha256": "e1020592d951efef35380a77ac637f1a60a240e9c4cc781cb42ae377a21f5c66",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 6168,
+      "triangles": 1424
+    },
+    {
+      "id": "stone-mill",
+      "sourceBytes": 57711,
+      "sha256": "57ff88861488f96b1eb8675247d6a5fe7949d89b27d43aa031e3aa0a1161e4d5",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1368,
+      "triangles": 372
+    },
+    {
+      "id": "stone-oven",
+      "sourceBytes": 101193,
+      "sha256": "977e0cca40491449a95c65d28447e1cc2792b61cd72f02ba4a8b4385838f43f0",
+      "footprint": [
+        1,
+        1
+      ],
+      "vertices": 1656,
+      "triangles": 732
+    },
+    {
+      "id": "warehouse-base",
+      "sourceBytes": 237018,
+      "sha256": "f9c5b25e4888558075d85e701ad6922dc96a68fc29dc0f7b64b05b8fc3e55105",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 5928,
+      "triangles": 1412
+    },
+    {
+      "id": "warehouse-expanded",
+      "sourceBytes": 285923,
+      "sha256": "caade31fdd9884f6a4db8da86080ca5639b4a84abc403005963ae13493824df0",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 7176,
+      "triangles": 1692
+    },
+    {
+      "id": "warehouse-transport",
+      "sourceBytes": 346112,
+      "sha256": "7a21f6995cba0352df6e8dca94707bfbeb89990b28c66619dda503cb7ebb780a",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 8568,
+      "triangles": 2180
+    },
+    {
+      "id": "wooden-pier",
+      "sourceBytes": 294272,
+      "sha256": "49f9635cd9a8bd14207ff553e375139b7ea3bedbf7b95ba3feee92752d3e697e",
+      "footprint": [
+        2,
+        2
+      ],
+      "vertices": 6432,
+      "triangles": 2700
+    }
+  ]
+}

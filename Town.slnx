@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Town.Core/Town.Core.csproj" />
+    <Project Path="src/Town.Desktop/Town.Desktop.csproj" />
+    <Project Path="src/Town.Android/Town.Android.csproj" />
+  </Folder>
+  <Folder Name="/tests/"><Project Path="tests/Town.Checks/Town.Checks.csproj" /></Folder>
+</Solution>

@@ -1,0 +1,25 @@
+newmtl Palette
+Ka 1 1 1
+Kd 1 1 1
+Ks 0 0 0
+d 1
+illum 1
+map_Kd palette.png
+
+newmtl PineTree_Leaves.png
+Kd 1 1 1
+d 1
+illum 1
+map_Kd PineTree_Leaves.png
+
+newmtl NormalTree_Leaves.png
+Kd 1 1 1
+d 1
+illum 1
+map_Kd NormalTree_Leaves.png
+
+newmtl warm-wood.png
+Kd 1 1 1
+d 1
+illum 1
+map_Kd warm-wood.png

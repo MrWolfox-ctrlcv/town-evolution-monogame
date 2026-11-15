@@ -1,0 +1,8 @@
+.tools/
+.packages/
+**/bin/
+**/obj/
+review/
+out/
+*.user
+*.log
