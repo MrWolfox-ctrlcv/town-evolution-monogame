@@ -7,10 +7,13 @@ public static class WorldQueries
     public static Tile TileAt(this World world, int x, int z)
     {
         int h = world.Height(x, z);
-        return new(h == 0 ? Surface.Water : h == 1 ? Surface.Sand : h >= 6 ? Surface.Rock : Surface.Grass, h, world.Occupant(x, z)?.Id);
+        return new(h == 0 ? Surface.Water : h == 1 ? Surface.Sand : h >= World.RockLine ? Surface.Rock : Surface.Grass, h, world.Occupant(x, z)?.Id);
     }
     public const int ChunkSize = 8;
+    public static int ChunksPerAxis => World.Size / ChunkSize;
+    public static int ChunkCount => ChunksPerAxis * ChunksPerAxis;
     public static Cell ChunkAt(Cell cell) => new((cell.X + World.Half) / ChunkSize, (cell.Z + World.Half) / ChunkSize);
+    public static IEnumerable<Cell> AllChunks() { for (int z = 0; z < ChunksPerAxis; z++) for (int x = 0; x < ChunksPerAxis; x++) yield return new(x, z); }
     public static HashSet<Cell> AffectedChunks(IEnumerable<Cell> cells)
     {
         var result = new HashSet<Cell>();

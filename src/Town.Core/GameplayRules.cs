@@ -133,9 +133,7 @@ public sealed partial class World
                 var tree=LiveTrees.FirstOrDefault(n=>n.X==c.X&&n.Z==c.Z);Require(tree is not null,"把斧子拖到一棵树上松手");Require(TreeMature(c.X,c.Z),"树苗尚未长成");
                 if(play.Trees.RemoveAll(t=>t.X==c.X&&t.Z==c.Z)==0)play.ClearedTrees.Add(Index(c.X,c.Z));DropNear("wood",2,c.X,c.Z);DropNear("treeSeed",2,c.X,c.Z);Discover("gather-wood");break;
             case "diggingTool":
-                var resource=play.Resources.Find(r=>r.Id==c.ObjectId&&r.X==c.X&&r.Z==c.Z);
-                if(resource is not null){play.Resources.Remove(resource);if(resource.Remaining>1)play.Resources.Add(resource with{Remaining=resource.Remaining-1});DropNear(resource.Kind=="stone"?"stone":"soil",resource.Kind=="stone"?1:9,c.X,c.Z);Discover(resource.Kind=="stone"?"gather-stone":"gather-soil");}
-                else{MakeBuilding("farm",c.X,c.Z);Discover("dig-farm");}break;
+                MakeBuilding("farm",c.X,c.Z);Discover("dig-farm");break;
             case "sickle":HarvestCell(Building(c.ObjectId),c.FarmCell);break;
             case "wateringCan":
                 if(c.ObjectId!=0){var b=Building(c.ObjectId);if(b.Kind=="nursery"){StartProcessing(b,"grow-sapling",true);break;}var farm=Farm(b.Id);Require(farm is not null&&!farm.Irrigated,"把水壶拖到空旱田，或划过地上的土料堆");Require(farm!.Cells.All(p=>p is null||p.Crop=="rice"),"先收获旱作物，再灌成水田");play.Farms[play.Farms.IndexOf(farm)]=farm with{Irrigated=true};Discover("irrigate-farm");}
@@ -164,9 +162,14 @@ public sealed partial class World
             {
                 case "tool":UseTool(c);break;
                 case "terrainDig":
-                    EditableGround(c.X,c.Z);Require(Height(c.X,c.Z)>0,"此处已是水面");string excavated=Surface(c.X,c.Z)==GroundSurface.Stone?"stone":"soil";heights[Index(c.X,c.Z)]--;surfaces[Index(c.X,c.Z)]=(byte)(Height(c.X,c.Z)>=6?GroundSurface.Stone:GroundSurface.Soil);DropNear(excavated,1,c.X,c.Z,true,true);break;
+                    EditableGround(c.X,c.Z);Require(Height(c.X,c.Z)>0,"此处已是水面");
+                    // The mountain is the stone supply and the land itself is the soil supply.
+                    bool rock=Surface(c.X,c.Z)==GroundSurface.Stone;string excavated=rock?"stone":"soil";
+                    heights[Index(c.X,c.Z)]--;int left=Height(c.X,c.Z);
+                    surfaces[Index(c.X,c.Z)]=left>=RockLine?DefaultSurface(left):(byte)GroundSurface.Soil;
+                    DropNear(excavated,rock?1:1,c.X,c.Z,true,true);Discover(rock?"gather-stone":"gather-soil");break;
                 case "terrainFill":
-                    EditableGround(c.X,c.Z);Require(Height(c.X,c.Z)<9,"最多九层");Take("soil",1);heights[Index(c.X,c.Z)]++;surfaces[Index(c.X,c.Z)]=(byte)GroundSurface.Soil;break;
+                    EditableGround(c.X,c.Z);Require(Height(c.X,c.Z)<MaxHeight,$"最多{MaxHeight}层");Take("soil",1);heights[Index(c.X,c.Z)]++;surfaces[Index(c.X,c.Z)]=(byte)GroundSurface.Soil;break;
                 case "stockDrop":
                     Require(c.Quantity>0&&c.Quantity<=StackLimit(c.Item),"物品数量无效");var target=Occupant(c.X,c.Z);
                     if(target is not null){if(target.Kind=="farm"&&IsCrop(c.Item))PlantCell(target,c.FarmCell,c.Item);else{Take(c.Item,1);Attach(target,c.Item);}}

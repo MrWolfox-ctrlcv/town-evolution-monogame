@@ -5,7 +5,7 @@ namespace Town.Core;
 public enum GroundSurface : byte { Grass, Sand, Soil, Stone }
 public sealed record BuildingSpec(string Name, string? Asset, int Width, int Depth, float Scale);
 public sealed record PlacedObject(int Id, string Kind, int X, int Z, int Rotation);
-public sealed record NaturalObject(int X, int Z, bool Rock, double Variant);
+public sealed record NaturalObject(int X, int Z, double Variant);
 public readonly record struct Cell(int X, int Z);
 public readonly record struct Result(bool Ok, string Message);
 public sealed record WorldCommand(string Type, int X, int Z, string Kind = "", int Rotation = 0, int ObjectId = 0,
@@ -15,7 +15,10 @@ public sealed record CommandPreview(Result Result,PlacedObject? Ghost);
 /// <summary>Integer column grid and deterministic occupancy. No engine or storage references.</summary>
 public sealed partial class World
 {
-    public const int Size = 40, Half = Size / 2, Schema = 3;
+    public const int Size = 96, Half = Size / 2, Schema = 4;
+    public const int MaxHeight = 72, SeaLevel = 0, RockLine = 12;
+    /// <summary>Starter settlement sits on the south-east coastal plain.</summary>
+    public const int TownX = 12, TownZ = 12;
     public const float Step = .45f;
     public static readonly ReadOnlyDictionary<string, BuildingSpec> Catalog = new(
         new Dictionary<string, BuildingSpec>(StringComparer.Ordinal)
@@ -43,9 +46,8 @@ public sealed partial class World
     private readonly int[] heights;
     private readonly byte[] surfaces;
     public int Seed {get;}
-    public int Generator {get;}
     public const float WaterLevel=.22f;
-    public GroundSurface Surface(int x,int z)=>Inside(x,z)?(GroundSurface)surfaces[Index(x,z)]:GroundSurface.Sand;
+    public GroundSurface Surface(int x,int z)=>Inside(x,z)?(GroundSurface)surfaces[Index(x,z)]:GroundSurface.Grass;
     public IReadOnlyList<byte> Surfaces=>Array.AsReadOnly(surfaces);
     private readonly List<PlacedObject> objects = [];
     private readonly List<NaturalObject> nature = [];
@@ -56,9 +58,11 @@ public sealed partial class World
     public IReadOnlyList<PlacedObject> Objects { get; }
     public IReadOnlyList<NaturalObject> Nature { get; }
     public int NextId => nextId;
-    private World(int[] heights,int seed=0,int generator=0,byte[]? surfaces=null)
+    /// <summary>Water at zero, beach at one, rock from ten; every other height is open grass.</summary>
+    public static byte DefaultSurface(int height)=>(byte)(height==1?GroundSurface.Sand:height>=RockLine?GroundSurface.Stone:GroundSurface.Grass);
+    private World(int[] heights,int seed=0,byte[]? surfaces=null)
     {
-        this.heights = heights;this.surfaces=surfaces??heights.Select(h=>(byte)(h==1?GroundSurface.Sand:h>=6?GroundSurface.Stone:GroundSurface.Grass)).ToArray();Seed=seed;Generator=generator;
+        this.heights = heights;this.surfaces=surfaces??heights.Select(DefaultSurface).ToArray();Seed=seed;
         Heights = Array.AsReadOnly(heights);
         Objects = objects.AsReadOnly();
         Nature = nature.AsReadOnly();
@@ -92,7 +96,7 @@ public sealed partial class World
         objects.Add(item); byId.Add(item.Id,item);
         foreach(var cell in Cells(item))occupancy[Index(cell.X,cell.Z)]=item.Id;
     }
-    public bool HasNature(int x, int z) => nature.Any(n => n.X == x && n.Z == z&&!play.ClearedTrees.Contains(Index(x,z)))||play.Resources.Any(r=>r.X==x&&r.Z==z)||play.Trees.Any(t=>t.X==x&&t.Z==z);
+    public bool HasNature(int x, int z) => nature.Any(n => n.X == x && n.Z == z&&!play.ClearedTrees.Contains(Index(x,z)))||play.Trees.Any(t=>t.X==x&&t.Z==z);
     public Result CanPlace(string kind, int x, int z, int rotation, int ignoreObjectId = 0)
     {
         if (!Catalog.ContainsKey(kind) || rotation is < 0 or > 3) return new(false, "未知建造项目");
@@ -156,61 +160,38 @@ public sealed partial class World
         {
             if (!Inside(x, z)) return new(false, "超出地图边界");
             int h = Height(x, z), value = h + (command.Type == "raise" ? 1 : -1);
-            if (h == 0 || value is < 1 or > 9) return new(false, "仅调整现有陆地，高度为一至九层");
+            if (h == 0 || value is < 1 or > MaxHeight) return new(false, $"仅调整现有陆地，高度为一至{MaxHeight}层");
             if (Occupant(x, z) is not null || HasNature(x, z)||play.Piles.Any(p=>p.X==x&&p.Z==z)||play.Drops.Any(p=>p.X==x&&p.Z==z)) return new(false, "地面被占用，无法挖填");
             heights[Index(x, z)] = value;
+            surfaces[Index(x, z)] = DefaultSurface(value);
         }
         else return new(false, "未知操作");
         return new(true, "已完成");
     }
-    public static World Create()
+    private void PopulateStarter()
     {
-        var world = new World(new int[Size * Size]);
-        for (int z = -Half; z < Half; z++)
-            for (int x = -Half; x < Half; x++)
-            {
-                double radial = Math.Pow(x / 17.0, 2) + Math.Pow(z / 15.5, 2);
-                double edge = 1 + .06 * Math.Sin(x * .8) + .045 * Math.Cos(z * .9);
-                int h = radial > edge ? 0 : radial > edge - .14 ? 1 : 2;
-                if (h == 2)
-                {
-                    double hill = Math.Max(0, 1 - Math.Sqrt(Math.Pow((x - 5) / 9.0, 2) + Math.Pow((z + 9) / 6.0, 2)));
-                    h += (int)Math.Floor(hill * 6);
-                    if (x is >= -1 and <= 13 && z is >= -6 and <= 10) h = 2;
-                }
-                if (Math.Abs(x - (-5 + 1.4 * Math.Sin(z * .23))) < 1.1 && z < 13) h = 0;
-                world.heights[Index(x, z)] = h;
-            }
+        var world=this;
         void Place(string kind, int x, int z, int rotation = 0)
         {
             var result = world.Execute(new("place", x, z, kind, rotation));
             if (!result.Ok) throw new InvalidOperationException($"Starter {kind} at {x},{z}: {result.Message}");
         }
-        Place("house", 0, 0); Place("house", 5, 0); Place("warehouse", 10, 0, 1);
-        Place("mill", 3, -5); Place("bakery", 8, -5); Place("farm", 0, 6); Place("farm", 5, 6, 1); Place("oven", 10, 6);
-        for (int x = -2; x <= 13; x++) Place("road", x, 4);
-        for (int z = -5; z <= 9; z++) if (z != 4) Place("road", -2, z);
-        for (int z = 5; z <= 10; z++) Place("road", 8, z);
-        Place("crate",9,3);Place("crate",12,3);Place("crate",7,-1);
-        for (int z = -14; z < 14; z++)
-            for (int x = -17; x < 17; x++)
-            {
-                int h = world.Height(x, z); double r = Hash(x, z);
-                if (h < 2 || world.Occupant(x, z) is not null || x is >= -3 and <= 14 && z is >= -7 and <= 11) continue;
-                if (r > .91 && h <= 4) world.nature.Add(new(x, z, false, Hash(z, x)));
-            }
-        for(int i=0;i<world.heights.Length;i++)world.surfaces[i]=(byte)(world.heights[i]==1?GroundSurface.Sand:world.heights[i]>=6?GroundSurface.Stone:GroundSurface.Grass);
-        world.InitializeGameplay();
-        return world;
+        const int ox = TownX, oz = TownZ;
+        Place("house", ox+0, oz+0); Place("house", ox+5, oz+0); Place("warehouse", ox+10, oz+0, 1);
+        Place("mill", ox+3, oz-5); Place("bakery", ox+8, oz-5); Place("farm", ox+0, oz+6); Place("farm", ox+5, oz+6, 1); Place("oven", ox+10, oz+6);
+        for (int x = ox-2; x <= ox+13; x++) Place("road", x, oz+4);
+        for (int z = oz-5; z <= oz+9; z++) if (z != oz+4) Place("road", ox-2, z);
+        for (int z = oz+5; z <= oz+10; z++) Place("road", ox+8, z);
+        Place("crate",ox+9,oz+3);Place("crate",ox+12,oz+3);Place("crate",ox+7,oz-1);
     }
     internal static World Restore(SaveData data)
     {
-        var world = Create();
+        var world = Create(data.Seed);
         world.RestoreGameplay(data.Gameplay);
-        if (data.Schema<3&&data.Heights.Where((h, i) => (h == 0) != (world.heights[i] == 0)).Any()) throw new FormatException("海陆边界不匹配");
-        if (world.nature.Any(n => !world.play.ClearedTrees.Contains(Index(n.X,n.Z))&&data.Heights[Index(n.X, n.Z)] != world.Height(n.X, n.Z))) throw new FormatException("自然资源地面被改动");
+        if(data.Heights.Length!=world.heights.Length)throw new FormatException("地形尺寸不符");
         data.Heights.CopyTo(world.heights, 0);
-        for(int i=0;i<world.surfaces.Length;i++)world.surfaces[i]=data.Surfaces is not null?(byte)data.Surfaces[i]:(byte)(data.Heights[i]==1?GroundSurface.Sand:data.Heights[i]>=6?GroundSurface.Stone:GroundSurface.Grass);
+        for(int i=0;i<world.surfaces.Length;i++)world.surfaces[i]=data.Surfaces is not null?(byte)data.Surfaces[i]:DefaultSurface(data.Heights[i]);
+        world.nature.Clear();world.nature.AddRange(data.Nature!);
         world.objects.Clear(); world.byId.Clear(); Array.Clear(world.occupancy);
         var ids = new HashSet<int>();
         foreach (var item in data.Objects)

@@ -17,7 +17,7 @@ public sealed partial class TownGame
     }
     private void DrawIslandMap(World world,Rectangle rect)
     {
-        ui.Rect(rect,new Color(156,198,192));float unit=Math.Min(rect.Width/42f,rect.Height/30f);var center=rect.Center.ToVector2()+new Vector2(0,18);
+        ui.Rect(rect,new Color(156,198,192));float unit=Math.Min(rect.Width/(World.Size*.6f),rect.Height/(World.Size*.34f));var center=rect.Center.ToVector2()+new Vector2(0,18);
         for(int z=-World.Half;z<World.Half;z++)for(int x=-World.Half;x<World.Half;x++)
         {
             int height=world.Height(x,z);if(height==0)continue;float sx=center.X+(x-z)*unit*.45f,sy=center.Y+(x+z)*unit*.21f-height*unit*.3f;int size=Math.Max(2,(int)unit);

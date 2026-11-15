@@ -14,7 +14,7 @@ public sealed class ThumbnailCache : IDisposable
         var mapping=World.Catalog.Where(p=>p.Value.Asset is not null).ToDictionary(p=>p.Key,p=>p.Value.Asset!);
         foreach(string item in World.ItemNames.Keys.Where(i=>i!="fertilizer"))mapping[item]=$"pile-{item}-1";
         mapping["tree"]="approved-tree-7";mapping["stoneOven"]="stone-oven";mapping["expandedWarehouse"]="warehouse-expanded";
-        mapping["flatLand"]="natural-block-grass";mapping["soilMound"]="natural-block-soil";mapping["stoneDeposit"]="natural-block-stone";mapping["waterFarm"]="farm-cell-bed-water";mapping["farmWithBox"]="farm-with-box";
+        mapping["flatLand"]="farm-cell-bed";mapping["waterFarm"]="farm-cell-bed-water";mapping["farmWithBox"]="farm-with-box";
         foreach(var(kind,asset)in mapping)
         {
             var model=content.Load<Model>("Models/"+asset);var bounds=model.Meshes.Select(m=>m.BoundingSphere).Aggregate(BoundingSphere.CreateMerged);
