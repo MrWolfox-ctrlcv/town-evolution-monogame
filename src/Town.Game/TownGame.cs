@@ -8,7 +8,7 @@ using Town.Game.Interaction;
 using Town.Game.Rendering;
 namespace Town.Game;
 
-public sealed record GameOptions(string SaveDirectory,string? ReviewDirectory=null,bool AutoExit=false);
+public sealed record GameOptions(string SaveDirectory,string? ReviewDirectory=null,bool AutoExit=false,bool NpcDemo=false);
 public sealed partial class TownGame : Microsoft.Xna.Framework.Game
 {
     private readonly GraphicsDeviceManager graphics;
@@ -54,13 +54,16 @@ public sealed partial class TownGame : Microsoft.Xna.Framework.Game
         matte=new(GraphicsDevice){VertexColorEnabled=true,LightingEnabled=true,AmbientLightColor=new(.66f,.69f,.62f),DiffuseColor=Vector3.One,SpecularColor=Vector3.Zero};
         matte.DirectionalLight0.Enabled=true;matte.DirectionalLight0.Direction=Vector3.Normalize(new(-.45f,-.82f,.35f));matte.DirectionalLight0.DiffuseColor=new(.38f,.35f,.29f);
         terrain=new(GraphicsDevice);models=new(GraphicsDevice,Content);surfaces=new(GraphicsDevice);ui=new(GraphicsDevice,Content);presenter=new(GraphicsDevice);
-        var restored=save.Load(simulation);if(restored is not null)message=restored;
-        thumbnails=new(GraphicsDevice,Content);TrackCollections(true);Rebuild();Home();camera.Update(GraphicsDevice.Viewport);lastMouse=Mouse.GetState();
+        var restored=options.NpcDemo?null:save.Load(simulation);
+        if(restored is not null)message=restored;
+        thumbnails=new(GraphicsDevice,Content);TrackCollections(true);
+        if(options.NpcDemo)UseNpcDemoIsland();else Rebuild();
+        Home();camera.Update(GraphicsDevice.Viewport);lastMouse=Mouse.GetState();
     }
     private void Rebuild(){terrain.Rebuild(simulation.World);models.Sync(simulation.World);surfaces.RebuildRoads(simulation.World);surfaces.RebuildGrid(simulation.World);RefreshSelection();}
     private void RefreshSelection()=>surfaces.Select(simulation.World,selected,"inspect",rotation);
     private void Rotate(){rotation=(rotation+1)%4;RefreshSelection();}
-    private void Home(){camera.Target=new(0,.8f,0);camera.Yaw=.68f;float fit=World.Half*.92f;camera.Zoom=GraphicsDevice.Viewport.AspectRatio<1?fit/GraphicsDevice.Viewport.AspectRatio:fit;}
+    private void Home(){camera.Target=new(0,.8f,0);camera.Yaw=.68f;if(npcDemo){camera.Zoom=13;return;}float fit=World.Half*.92f;camera.Zoom=GraphicsDevice.Viewport.AspectRatio<1?fit/GraphicsDevice.Viewport.AspectRatio:fit;}
     private void Notice(string text){message=text;noticeUntil=totalTime+3;}
     protected override void Update(GameTime time)
     {
@@ -84,6 +87,7 @@ public sealed partial class TownGame : Microsoft.Xna.Framework.Game
         TrackCollections();lastKeys=keys;lastMouse=mouse;base.Update(time);
     }
     private void Pointer(Vector2 point,bool down,bool up)=>GamePointer(point,down,up);
+    private static bool ShiftDown()=>Keyboard.GetState().IsKeyDown(Keys.LeftShift)||Keyboard.GetState().IsKeyDown(Keys.RightShift);
     private void SetCell(Vector2 point){var hit=WorldPicking.Pick(simulation.World,camera,GraphicsDevice.Viewport,point);Cell? next=hit is null?null:new Cell(hit.X,hit.Z);if(next==selected)return;selected=next;RefreshSelection();}
     private void Undo(){if(!simulation.Undo())Notice("还没有可撤销的操作");else Notice("已撤销上一步");}
     protected override void Draw(GameTime time)
@@ -98,6 +102,7 @@ public sealed partial class TownGame : Microsoft.Xna.Framework.Game
         camera.Update(new Viewport(0,0,w,h));matte.View=camera.View;matte.Projection=camera.Projection;matte.World=Matrix.Identity;
         GraphicsDevice.SetRenderTarget(sceneTarget);GraphicsDevice.Clear(new Color(176,204,193));GraphicsDevice.BlendState=BlendState.Opaque;GraphicsDevice.DepthStencilState=DepthStencilState.Default;GraphicsDevice.RasterizerState=RasterizerState.CullNone;
         terrain.Draw(matte);surfaces.Draw(matte,showGrid);models.Draw(camera.View*camera.Projection);
+        if(npcDemo)DrawNpcDemo(matte);
         GraphicsDevice.SetRenderTarget(target);GraphicsDevice.SetVertexBuffers(Array.Empty<VertexBufferBinding>());GraphicsDevice.Indices=null;GraphicsDevice.Textures[0]=null;
         presenter.Begin(SpriteSortMode.Deferred,BlendState.Opaque,SamplerState.LinearClamp,DepthStencilState.None,RasterizerState.CullNone);presenter.Draw(sceneTarget,new Rectangle(0,0,w,h),Color.White);presenter.End();
         float uiScale=HudMetrics.Scale(h);DrawUi((int)(w/uiScale),(int)(h/uiScale),uiScale);frames++;
@@ -115,14 +120,15 @@ public sealed partial class TownGame : Microsoft.Xna.Framework.Game
         var world=simulation.World;
         var tiles=Enumerable.Range(-World.Half,World.Size).SelectMany(z=>Enumerable.Range(-World.Half,World.Size).Select(x=>new Cell(x,z))).Select(c=>{var p=camera.Project(GraphicsDevice.Viewport,new(c.X+.5f,Math.Max(World.WaterLevel,world.Height(c.X,c.Z)*World.Step),c.Z+.5f));return new{x=c.X,z=c.Z,screenX=p.X,screenY=p.Y,height=world.Height(c.X,c.Z),empty=world.Occupant(c.X,c.Z) is null&&!world.HasNature(c.X,c.Z),canPlaceOven=world.CanPlace("oven",c.X,c.Z,rotation).Ok};});
         var entities=new List<object>();
-        void Point(string type,int id,float x,float z,float above,int cell=-1){var p=camera.Project(GraphicsDevice.Viewport,new(x,world.Height((int)MathF.Floor(x),(int)MathF.Floor(z))*World.Step+above,z));p=new(MathF.Round(p.X),MathF.Round(p.Y));var hit=WorldPicking.Pick(world,camera,GraphicsDevice.Viewport,new(p.X,p.Y));entities.Add(new{type,id,cell,screenX=p.X,screenY=p.Y,hitType=hit?.Type,hitId=hit?.Id,hitCell=hit?.FarmCell});}
+        void Point(string type,int id,float x,float z,float above,int cell=-1){var p=camera.Project(GraphicsDevice.Viewport,new(x,world.Height((int)MathF.Floor(x),(int)MathF.Floor(z))*World.Step+above,z));p=new(MathF.Round(p.X),MathF.Round(p.Y));var hit=WorldPicking.Pick(world,camera,GraphicsDevice.Viewport,new(p.X,p.Y),npcDemo);entities.Add(new{type,id,cell,screenX=p.X,screenY=p.Y,hitType=hit?.Type,hitId=hit?.Id,hitCell=hit?.FarmCell});}
         foreach(var b in world.Objects.Where(b=>b.Kind!="road")){var(w,d)=World.Footprint(b.Kind,b.Rotation);Point("building",b.Id,b.X+w*.5f,b.Z+d*.5f,b.Kind=="farm"?.05f:1);if(b.Kind=="farm")for(int i=0;i<9;i++){var p=WorldPicking.FarmCenter(b,i);Point("farm",b.Id,p.X,p.Z,world.Farm(b.Id)?.Cells[i]is null?.04f:.6f,i);}}
         foreach(var t in world.LiveTrees)Point("tree",World.Index(t.X,t.Z),t.X+.5f,t.Z+.5f,1.3f);
         foreach(var p in world.Piles)Point("pile",p.Id,p.X+.5f,p.Z+.5f,.25f);
         foreach(var p in world.Drops)Point("drop",p.Id,p.X+p.OffsetX,p.Z+p.OffsetZ,.15f);
+        foreach(var n in world.Npcs.All)Point("resident",n.Id,n.X,n.Z,.5f);
         var data=new{inputTrace=inputTrace.ToArray(),entities,platform=OperatingSystem.IsAndroid()?"Android":"Windows",seed=world.Seed,framework="MonoGame 3.8.6",graphicsProfile=GraphicsDevice.GraphicsProfile.ToString(),adapter=GraphicsDevice.Adapter.Description,frames,simulationTicks=simulation.Ticks,revision=simulation.Revision,pendingCommands=simulation.PendingCount,objects=world.Objects.Count,terrainChunks=terrain.Count,terrainTriangles=terrain.Triangles,terrain.Rebuilds,models=models.Counts,models.GeometryLoads,models.InstanceUploads,idleUploads,models.InstanceCount,instancedDrawCalls=models.DrawCalls,gesture=new{mode=dragMode,kind=dragKind,quantity=dragQuantity,previewOk=commandPreview?.Result.Ok,previewReason=commandPreview?.Result.Message},bookView,bookPage,focusedBuilding,rotation,selected,result=simulation.LastResult.Message,ok=simulation.LastResult.Ok,notice=message,saveLocked=save.Locked,width=capturedTarget.Width,height=capturedTarget.Height,quality=GamePreferences.QualityNames[preferences.Quality],sceneWidth=sceneTarget?.Width,sceneHeight=sceneTarget?.Height,antialiasSamples=sceneTarget?.MultiSampleCount,uiScale=HudMetrics.Scale(capturedTarget.Height),cameraYaw=camera.Yaw,ui=ui.Targets,tiles};
         File.WriteAllText(Path.Combine(dir,"world.json"),SaveCodec.Encode(world));
         File.WriteAllText(Path.Combine(dir,"render.json"),JsonSerializer.Serialize(data,new JsonSerializerOptions{WriteIndented=true}));if(options.AutoExit)Exit();
     }
-    protected override void UnloadContent(){target?.Dispose();sceneTarget?.Dispose();terrain?.Dispose();models?.Dispose();surfaces?.Dispose();matte?.Dispose();ui?.Dispose();thumbnails?.Dispose();presenter?.Dispose();base.UnloadContent();}
+    protected override void UnloadContent(){DisposeNpcDemo();target?.Dispose();sceneTarget?.Dispose();terrain?.Dispose();models?.Dispose();surfaces?.Dispose();matte?.Dispose();ui?.Dispose();thumbnails?.Dispose();presenter?.Dispose();base.UnloadContent();}
 }

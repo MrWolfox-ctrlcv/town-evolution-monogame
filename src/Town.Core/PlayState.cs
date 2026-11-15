@@ -39,6 +39,8 @@ internal sealed class PlayState
 public sealed partial class World
 {
     private PlayState play=new();
+    private readonly Residents.NpcRoster npcs=new();
+    public Residents.NpcRoster Npcs=>npcs;
     public static readonly IReadOnlyDictionary<string,string> ItemNames=new ReadOnlyDictionary<string,string>(new Dictionary<string,string>{
         ["vegetable"]="胡萝卜",["wheat"]="小麦",["lettuce"]="生菜",["rice"]="稻谷",["wood"]="木材",["stone"]="石料",["soil"]="土料",["mud"]="泥",
         ["treeSeed"]="树种",["sapling"]="树苗",["flour"]="面粉",["milledRice"]="大米",["bread"]="面包",["roastedCarrot"]="烤胡萝卜",["fertilizer"]="肥料"});
@@ -50,6 +52,8 @@ public sealed partial class World
     public IReadOnlyList<Attachment> Attachments=>play.Attachments.AsReadOnly();
     public IReadOnlyDictionary<string,int> Discoveries=>new ReadOnlyDictionary<string,int>(play.Discoveries);
     public long Clock=>play.Clock;
+    /// <summary>演示与检查用：直接推进玩法时钟，让作物和加工到期。</summary>
+    public void SetClock(long clock)=>play.Clock=Math.Max(0,clock);
     /// <summary>Deterministic growth cursor; saved so grass and saplings keep spreading across a reload.</summary>
     public long Grown {get;private set;}
     public IEnumerable<NaturalObject> LiveTrees=>nature.Where(TreeAlive).Concat(play.Trees.Select(t=>new NaturalObject(t.X,t.Z,t.Variant)));
@@ -66,17 +70,18 @@ public sealed partial class World
     private World Fork()
     {
         var copy=new World(heights.ToArray(),Seed,surfaces.ToArray()){nextId=nextId,Grown=Grown,play=PlayState.Restore(play.Snapshot())};
+        copy.npcs.Restore(npcs.Snapshot());
         copy.nature.AddRange(nature);foreach(var item in objects)copy.AddObject(item);return copy;
     }
     private void Adopt(World other)
     {
         other.heights.CopyTo(heights,0);other.surfaces.CopyTo(surfaces,0);nature.Clear();nature.AddRange(other.nature);
         objects.Clear();byId.Clear();Array.Clear(occupancy);
-        foreach(var item in other.objects)AddObject(item);play=other.play;nextId=other.nextId;Grown=other.Grown;
+        foreach(var item in other.objects)AddObject(item);play=other.play;nextId=other.nextId;Grown=other.Grown;npcs.Restore(other.npcs.Snapshot());
     }
     private void InitializeGameplay()
     {
-        play.Farms.Clear();
+        play.Farms.Clear();npcs.Clear();
         foreach(string item in ItemNames.Keys)play.Stock[item]=IsCrop(item)?1:0;
         foreach(var o in objects.Where(o=>o.Kind=="farm"))play.Farms.Add(new(o.Id,false,Enumerable.Range(0,9).Select(_=>(CropCell?)new CropCell(o.Rotation%2==0?"wheat":"lettuce",0)).ToArray()));
     }
@@ -90,6 +95,7 @@ public sealed partial class World
     {
         play.Clock++;
         bool changed=play.Farms.Any(f=>f.Cells.Any(c=>c is not null&&(c.ReadyTick-play.Clock is 0 or 100 or 200)))||play.Jobs.Any(j=>j.ReadyTick==play.Clock)||play.Trees.Any(t=>t.MatureTick==play.Clock);
+        changed|=npcs.Tick(this);
         if(play.Clock%(SpreadTicks/2)==0)changed|=Spread();
         return changed;
     }

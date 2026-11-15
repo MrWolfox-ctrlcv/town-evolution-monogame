@@ -48,6 +48,7 @@ public sealed partial class TownGame
         ui.IconButton(new(w/2+59,h-88,78,76),"camera-rotate","右转",()=>camera.Yaw+=MathHelper.PiOver4);
         ui.IconButton(new(w-98,h-98,86,86),"handbook","图鉴",()=>bookView=bookView==0?1:0);
         DrawWorldCaptions(scale);
+        DrawResidentPanel(w,h);
         if(terrainMenu)
         {
             int x=108,y=90;ui.Panel(new(x,y,306,136));ui.Block(new(x,y,306,136));

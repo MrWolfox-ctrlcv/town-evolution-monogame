@@ -46,6 +46,8 @@ public sealed partial class World
     private readonly int[] heights;
     private readonly byte[] surfaces;
     public int Seed {get;}
+    /// <summary>生成器标记：普通随机岛为空，演示岛为 "npc-demo"，读档时据此重建地形。</summary>
+    public string? IslandTag {get;set;}
     public const float WaterLevel=.22f;
     public GroundSurface Surface(int x,int z)=>Inside(x,z)?(GroundSurface)surfaces[Index(x,z)]:GroundSurface.Grass;
     public IReadOnlyList<byte> Surfaces=>Array.AsReadOnly(surfaces);
@@ -70,6 +72,37 @@ public sealed partial class World
     public static bool Inside(int x, int z) => x >= -Half && x < Half && z >= -Half && z < Half;
     public static int Index(int x, int z) => (z + Half) * Size + x + Half;
     public int Height(int x, int z) => Inside(x, z) ? heights[Index(x, z)] : 0;
+
+    /// <summary>演示岛用：直接写入一列高度，不做挖填规则校验。</summary>
+    public void SetHeight(int x, int z, int height)
+    {
+        if (!Inside(x, z) || height < 0 || height > MaxHeight) return;
+        heights[Index(x, z)] = height;
+        surfaces[Index(x, z)] = DefaultSurface(height);
+    }
+
+    /// <summary>演示岛用：整体替换地形高度与地表。</summary>
+    public void ReplaceTerrain(int[] newHeights, byte[] newSurfaces)
+    {
+        if (newHeights.Length != heights.Length || newSurfaces.Length != surfaces.Length) throw new ArgumentException("地形尺寸不符");
+        newHeights.CopyTo(heights, 0);
+        newSurfaces.CopyTo(surfaces, 0);
+    }
+
+    /// <summary>演示岛用：清空天然植被。</summary>
+    public void ClearNature() => nature.Clear();
+
+    /// <summary>演示岛用：直接放一棵天然树。</summary>
+    public void AddNature(int x, int z, double variant)
+    {
+        if (Inside(x, z) && heights[Index(x, z)] > 0) nature.Add(new NaturalObject(x, z, Math.Clamp(variant, 0, 1)));
+    }
+
+    /// <summary>演示岛用：整张图都是水面、没有任何建筑的空白世界。</summary>
+    public static World CreateEmpty(int seed) => new(new int[Size * Size], seed);
+
+    /// <summary>演示岛用：地形清空后重新建立初始玩法状态（库存、农田）。</summary>
+    public void StartGameplay() => InitializeGameplay();
     public static double Hash(int x, int z)
     {
         unchecked
@@ -186,7 +219,8 @@ public sealed partial class World
     }
     internal static World Restore(SaveData data)
     {
-        var world = Create(data.Seed);
+        var world = data.Island == NpcDemoIsland.Tag ? NpcDemoIsland.CreateForRestore() : Create(data.Seed);
+        world.IslandTag = data.Island;
         world.RestoreGameplay(data.Gameplay);
         if(data.Heights.Length!=world.heights.Length)throw new FormatException("地形尺寸不符");
         data.Heights.CopyTo(world.heights, 0);
@@ -199,6 +233,9 @@ public sealed partial class World
             if (item is null || item.Kind is null || item.Id < 1 || item.Id >= data.NextId || !ids.Add(item.Id) || !world.CanPlace(item.Kind, item.X, item.Z, item.Rotation).Ok) throw new FormatException("建筑占用或身份不合法");
             world.AddObject(item);
         }
-        world.nextId = data.NextId;if(data.Gameplay is null)world.MigrateLegacyGameplay();world.ValidateGameplay();return world;
+        world.nextId = data.NextId;if(data.Gameplay is null)world.MigrateLegacyGameplay();
+        world.npcs.Restore(data.Residents ?? []);
+        world.npcs.Refresh(world);
+        world.ValidateGameplay();return world;
     }
 }

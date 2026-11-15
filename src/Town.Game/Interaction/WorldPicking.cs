@@ -14,10 +14,15 @@ public static class WorldPicking
     public static string FarmAsset(FarmState f)=>f.Box?(f.Irrigated?"farm-with-box-water":"farm-with-box"):(f.Irrigated?"farm-cell-bed-water":"farm-cell-bed");
     public static string CropAsset(World w,CropCell c)=>$"crop-cell-{c.Crop}-"+(c.ReadyTick<=w.Clock?"ready":c.ReadyTick-w.Clock<=200?"young":"seedling");
     public static string NurseryAsset(World w,int id)=>w.Jobs.FirstOrDefault(j=>j.Id==id)is { } j?(j.ReadyTick<=w.Clock?"nursery-ready":"nursery-growing"):(w.Attachments.Any(a=>a.Id==id&&a.Stock.GetValueOrDefault("treeSeed")>0)?"nursery-seeded":"nursery-empty");
-    public static WorldHit? Pick(World world,MapCamera camera,Viewport viewport,Vector2 point)
+    public static WorldHit? Pick(World world,MapCamera camera,Viewport viewport,Vector2 point,bool residents=false)
     {
         var start=viewport.Unproject(new(point,0),camera.Projection,camera.View,Matrix.Identity);var end=viewport.Unproject(new(point,1),camera.Projection,camera.View,Matrix.Identity);
         var ray=new Ray(start,Vector3.Normalize(end-start));float nearest=float.MaxValue;WorldHit? found=null;
+        if(residents)foreach(var npc in world.Npcs.All)
+        {
+            var hit=ray.Intersects(new BoundingBox(new(npc.X-.3f,npc.Y,npc.Z-.3f),new(npc.X+.3f,npc.Y+1f,npc.Z+.3f)));
+            if(hit is float distance&&distance<nearest){nearest=distance;found=new("resident",npc.Id,npc.CellX,npc.CellZ);}
+        }
         Matrix Transform(Vector3 p,float rotation=0,float scale=1)=>Matrix.CreateScale(scale)*Matrix.CreateRotationY(rotation)*Matrix.CreateTranslation(p);
         void Mesh(string asset,Matrix transform,WorldHit hit){if(BakedGeometry.Intersect(asset,ray,transform)is float d&&d<nearest){nearest=d;found=hit;}}
         foreach(var b in world.Objects.Where(o=>o.Kind!="road"))

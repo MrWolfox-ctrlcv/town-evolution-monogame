@@ -43,7 +43,7 @@ public sealed partial class TownGame
                 if(dragMode=="stock"&&dragStock<=0){Notice("暂无"+World.ItemNames[dragKind]);CancelGameplayDrag();return;}
             }
             else if(IsBookHeader(point)){dragMode="book";}
-            else if(!ui.Hit(point,false))pressedHit=WorldPicking.Pick(simulation.World,camera,GraphicsDevice.Viewport,point);
+            else if(!ui.Hit(point,false))pressedHit=WorldPicking.Pick(simulation.World,camera,GraphicsDevice.Viewport,point,npcDemo);
         }
         if(press is Vector2 start&&!up)
         {
@@ -73,7 +73,12 @@ public sealed partial class TownGame
             else if(dragMode=="book")CancelGameplayDrag();
             else if(!dragged&&!ui.Hit(point,true))
             {
-                TapWorld(point);
+                if(npcDemo&&ShiftDown())
+                {
+                    var target=camera.Pick(simulation.World,GraphicsDevice.Viewport,point,false);
+                    if(target is Cell cell)AssignSelectedResident(cell);
+                }
+                else TapWorld(point);
             }
             press=null;lastPointer=null;reviewCapturePending=options.ReviewDirectory is not null;
         }
@@ -93,8 +98,9 @@ public sealed partial class TownGame
     }
     private void TapWorld(Vector2 point)
     {
-        var hit=WorldPicking.Pick(simulation.World,camera,GraphicsDevice.Viewport,point);focusedBuilding=0;
+        var hit=WorldPicking.Pick(simulation.World,camera,GraphicsDevice.Viewport,point,npcDemo);focusedBuilding=0;
         if(hit is null){selected=null;return;}selected=new(hit.X,hit.Z);RefreshSelection();
+        if(npcDemo&&hit.Type=="resident"){selectedNpc=hit.Id;var who=simulation.World.Npcs.All.FirstOrDefault(n=>n.Id==hit.Id);if(who is not null)Notice($"选中居民 {who.Id}：{who.Status}");return;}
         if(hit.Type is "drop" or "pile")Commit(new("pickup",hit.X,hit.Z,SourceId:hit.Id));
         else if(hit.Type is "building" or "farm")focusedBuilding=hit.Id;
         else if(hit.Type=="tree"){hintTool="axe";hintUntil=totalTime+2;}
