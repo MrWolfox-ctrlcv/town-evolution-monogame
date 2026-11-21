@@ -88,10 +88,8 @@ public sealed class InstancedModels(GraphicsDevice device,ContentManager content
         }
         foreach(var tree in world.LiveTrees)
         {
-            if(tree.Rock)continue;
             Add(tree.Variant>.5?"approved-pine-8":"approved-tree-7",new(tree.X+.5f,world.Height(tree.X,tree.Z)*World.Step,tree.Z+.5f),(float)tree.Variant*MathHelper.TwoPi,world.TreeScale(tree.X,tree.Z));
         }
-        foreach(var r in world.Resources)for(int i=0;i<r.Remaining;i++)Add("natural-block-"+r.Kind,new(r.X+.5f,world.Height(r.X,r.Z)*World.Step+i*.35f,r.Z+.5f),0,.7f);
         foreach(var p in world.Piles)Add($"pile-{p.Item}-{p.Amount}",new(p.X+.5f,world.Height(p.X,p.Z)*World.Step,p.Z+.5f));
         foreach(var p in world.Drops)Add($"pile-{p.Item}-1",new(p.X+p.OffsetX,Math.Max(World.WaterLevel,world.Height(p.X,p.Z)*World.Step)+.04f,p.Z+p.OffsetZ),0,.3f);
         foreach(var key in batches.Keys.Union(groups.Keys).ToArray())

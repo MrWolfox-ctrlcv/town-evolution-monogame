@@ -166,6 +166,6 @@ public sealed partial class TownGame
         if(proposed is null){models.SetPreview(null,world);return;}
         string key=$"{simulation.Revision}:{proposed.Type}:{proposed.Kind}:{proposed.X}:{proposed.Z}:{proposed.Rotation}:{proposed.ObjectId}:{proposed.FarmCell}:{dragQuantity}:{string.Join(',',pileSources.Select(s=>s.Id))}:{string.Join(',',entitySources.Select(s=>s.Id))}";
         if(key==previewKey)return;previewKey=key;commandPreview=world.PreviewPlan(proposed);models.SetPreview(commandPreview.Ghost,world);
-        var ghost=commandPreview.Ghost;surfaces.Select(world,ghost is null?ground:new Cell(ghost.X,ghost.Z),ghost?.Kind??"inspect",ghost?.Rotation??0,commandPreview.Result.Ok,pileSources.Select(p=>new Cell(p.X,p.Z)).Concat(entitySources.Select(e=>new Cell(e.X,e.Z))).ToArray());
+        var ghost=commandPreview.Ghost;surfaces.Select(world,ghost is null?ground:new Cell(ghost.X,ghost.Z),ghost?.Kind??"inspect",ghost?.Rotation??0,commandPreview.Result.Ok,pileSources.Select(p=>new Cell(p.X,p.Z)).Concat(entitySources.Select(e=>new Cell(e.X,e.Z))).ToArray(),proposed.Type=="terrainDig"?-1:proposed.Type=="terrainFill"?1:0);
     }
 }

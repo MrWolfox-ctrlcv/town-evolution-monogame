@@ -36,7 +36,6 @@ public static class WorldPicking
             }
         }
         foreach(var t in world.LiveTrees)Mesh(t.Variant>.5?"approved-pine-8":"approved-tree-7",Transform(new(t.X+.5f,world.Height(t.X,t.Z)*World.Step,t.Z+.5f),(float)t.Variant*MathHelper.TwoPi,world.TreeScale(t.X,t.Z)),new("tree",World.Index(t.X,t.Z),t.X,t.Z));
-        foreach(var r in world.Resources)for(int i=0;i<r.Remaining;i++)Mesh("natural-block-"+r.Kind,Transform(new(r.X+.5f,world.Height(r.X,r.Z)*World.Step+i*.35f,r.Z+.5f),0,.7f),new("resource",r.Id,r.X,r.Z));
         foreach(var p in world.Piles)
         {
             float y=world.Height(p.X,p.Z)*World.Step;Mesh($"pile-{p.Item}-{p.Amount}",Transform(new(p.X+.5f,y,p.Z+.5f)),new("pile",p.Id,p.X,p.Z));

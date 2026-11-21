@@ -215,11 +215,11 @@
     "title": "挖土成料",
     "category": "gather",
     "availability": "active",
-    "hint": "挖掘工具能把土丘变成可用的材料。",
+    "hint": "把挖掘工具拖到陆地上，挖下一层就是土料。",
     "ingredients": [
       {
-        "kind": "soilMound",
-        "label": "土丘",
+        "kind": "flatLand",
+        "label": "陆地",
         "amount": 1
       }
     ],
@@ -236,11 +236,11 @@
     "title": "开采石料",
     "category": "gather",
     "availability": "active",
-    "hint": "石矿可以逐块开采。",
+    "hint": "山体就是石料来源，挖山得石。",
     "ingredients": [
       {
-        "kind": "stoneDeposit",
-        "label": "石矿",
+        "kind": "rockFace",
+        "label": "山体",
         "amount": 1
       }
     ],

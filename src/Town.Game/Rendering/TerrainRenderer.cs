@@ -67,12 +67,53 @@ public sealed class TerrainRenderer(GraphicsDevice device) : IDisposable
     public int Triangles => chunks.Values.Sum(m => m.Triangles);
     public void Rebuild(World world, IEnumerable<Cell>? affected = null)
     {
-        var cells = affected ?? Enumerable.Range(0, 25).Select(i => new Cell(i % 5, i / 5));
+        var cells = affected ?? WorldQueries.AllChunks();
         foreach (var cell in cells)
         {
             if (chunks.Remove(cell, out var old)) old.Dispose();
             chunks[cell] = new(device, Build(world, cell)); Rebuilds++;
         }
+    }
+    /// <summary>Top faces read as grass everywhere the land is walkable; only mountains and beaches change colour.</summary>
+    private static Color TopColor(World world, int x, int z, int h)
+    {
+        double r = World.Hash(x, z);
+        switch (world.Surface(x, z))
+        {
+            case GroundSurface.Sand: return new Color(224, 205, 165);
+            case GroundSurface.Stone:
+                // Rock climbs from mossy grey at the foot to bare snow-white at the summit.
+                return h >= 58 ? new Color(238, 240, 238)
+                     : h >= 48 ? new Color(214, 218, 215)
+                     : h >= 38 ? new Color(188, 193, 189)
+                     : h >= 28 ? new Color(168, 174, 169)
+                     : h >= 18 ? new Color(154, 160, 155)
+                     : new Color(143, 150, 145);
+            case GroundSurface.Soil: return r > .5 ? new Color(150, 177, 108) : new Color(158, 184, 116);
+            default:
+                var shade = h >= 9 ? 1 : h >= 6 ? 2 : h >= 4 ? 3 : 4;
+                return shade switch
+                {
+                    1 => r > .5 ? new Color(132, 163, 96) : new Color(140, 170, 103),
+                    2 => r > .5 ? new Color(140, 170, 100) : new Color(148, 177, 108),
+                    3 => r > .5 ? new Color(150, 178, 106) : new Color(157, 185, 114),
+                    _ => r > .7 ? new Color(155, 182, 112) : r > .3 ? new Color(163, 189, 119) : new Color(170, 195, 125),
+                };
+        }
+    }
+    /// <summary>Cliff faces keep material identity: grass overhang, exposed soil, and grey mountain rock.</summary>
+    private static Color SideColor(World world, int x, int z, int h, int layer)
+    {
+        var surface = world.Surface(x, z);
+        if (surface == GroundSurface.Stone)
+            return layer >= 52 ? new Color(206, 210, 207)
+                 : layer >= 38 ? new Color(172, 177, 173)
+                 : layer >= 26 ? new Color(146, 152, 147)
+                 : layer >= 14 ? new Color(128, 135, 130)
+                 : new Color(112, 120, 114);
+        if (surface == GroundSurface.Sand) return new Color(201, 180, 138);
+        if (layer == h - 1) return new Color(126, 158, 92);
+        return layer >= h - 2 ? new Color(166, 128, 86) : new Color(148, 112, 74);
     }
     private static SurfaceMesh Build(World world, Cell chunk)
     {
@@ -82,14 +123,13 @@ public sealed class TerrainRenderer(GraphicsDevice device) : IDisposable
             for (int x = startX; x < startX + WorldQueries.ChunkSize; x++)
             {
                 int h = world.Height(x, z); if (h == 0) continue;
-                float y = h * World.Step; double r = World.Hash(x, z);
-                var top = h == 1 ? new Color(216,199,157) : h >= 6 ? new Color(152,161,139) : r > .8 ? new Color(147,174,104) : r > .4 ? new Color(159,185,119) : new Color(168,193,127);
-                mesh.Quad(new(x,y,z),new(x,y,z+1),new(x+1,y,z+1),new(x+1,y,z),Vector3.Up,top);
+                float y = h * World.Step;
+                mesh.Quad(new(x,y,z),new(x,y,z+1),new(x+1,y,z+1),new(x+1,y,z),Vector3.Up,TopColor(world,x,z,h));
                 foreach (var (dx,dz) in new[] {(-1,0),(1,0),(0,-1),(0,1)})
                     for (int layer = world.Height(x+dx,z+dz); layer < h; layer++)
                     {
                         float low = layer * World.Step, high = (layer+1)*World.Step;
-                        var color = layer == h-1 && h > 1 ? new Color(126,152,90) : layer < 2 ? new Color(168,142,108) : new Color(182,157,121);
+                        var color = SideColor(world,x,z,h,layer);
                         if(dx == -1)mesh.Quad(new(x,low,z+1),new(x,high,z+1),new(x,high,z),new(x,low,z),Vector3.Left,color);
                         if(dx == 1)mesh.Quad(new(x+1,low,z),new(x+1,high,z),new(x+1,high,z+1),new(x+1,low,z+1),Vector3.Right,color);
                         if(dz == -1)mesh.Quad(new(x,low,z),new(x,high,z),new(x+1,high,z),new(x+1,low,z),Vector3.Forward,color);

@@ -16,7 +16,7 @@ texture Palette;
 sampler PaletteSampler = sampler_state
 {
     Texture = <Palette>;
-    MinFilter = POINT; MagFilter = POINT; MipFilter = NONE;
+    MinFilter = LINEAR; MagFilter = LINEAR; MipFilter = NONE;
     AddressU = CLAMP; AddressV = CLAMP;
 };
 struct VertexInput
@@ -49,7 +49,7 @@ PixelInput InstancedVS(VertexInput input)
 float4 InstancedPS(PixelInput input) : COLOR0
 {
     float4 color = tex2D(PaletteSampler, input.UV);
-    clip(color.a - 0.45);
+    clip(color.a - 0.3);
     return float4(color.rgb * input.Lighting * Tint, Opacity);
 }
 technique Instanced
