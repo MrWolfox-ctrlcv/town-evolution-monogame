@@ -30,6 +30,7 @@ public sealed partial class TownGame
     {
         if(pendingIsland is null)return;
         if(!save.Archive(simulation)){Notice("保存失败");return;}
-        simulation.Load(SaveCodec.Encode(pendingIsland));pendingIsland=null;newIslandOpen=false;focusedBuilding=0;bookView=0;selected=null;Home();Notice(save.Save(simulation));
+        if(npcRenderer is not null)SeedResidents(pendingIsland);
+        simulation.Load(SaveCodec.Encode(pendingIsland));pendingIsland=null;newIslandOpen=false;ClearWorldSelection();bookView=0;Home();FrameResidentTown();Notice(save.Save(simulation));
     }
 }

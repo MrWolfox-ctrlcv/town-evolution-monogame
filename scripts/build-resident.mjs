@@ -208,7 +208,6 @@ function renderPart(name, stepTag){
       const col = shade(hex2rgb(PALETTE[q.slot] ?? PALETTE.skin), n);
       tri(cv, pts[0], pts[1], pts[2], col);
       tri(cv, pts[0], pts[2], pts[3], col);
-
     }
     text(cv, W*i + W/2 - textW(lab,3)/2, H-54, lab, 3, [60,60,60]);
   });
@@ -318,111 +317,6 @@ function renderPartGrid(name){
   return {mn,mx};
 }
 
-
-/* ---------- 拼接：三视图正交投影 ---------- */
-function renderAssembly(){
-  const allBoxes = [];
-  const partInfo = [];
-  for(const name of PART_ORDER){
-    const part = PARTS[name];
-    if(!part || !part.boxes.length) continue;
-    allBoxes.push(...part.boxes);
-    let x0=99,x1=-99,y0=99,y1=-99,z0=99,z1=-99;
-    for(const b of part.boxes){
-      x0=Math.min(x0,b.x0); x1=Math.max(x1,b.x1);
-      y0=Math.min(y0,b.y0); y1=Math.max(y1,b.y1);
-      z0=Math.min(z0,b.z0); z1=Math.max(z1,b.z1);
-    }
-    partInfo.push({name, w:x1-x0, h:y1-y0, d:z1-z0, y0, y1});
-  }
-  const {quads, mn, mx} = surfaceQuads(allBoxes);
-
-  const CELL = 22, ROWS = 33;
-  const gH = ROWS*CELL;
-  const padL = 96, padT = 100, padB = 90;
-  const panelW = 22*CELL;          // 22 格宽足够装 20 格人
-  const gap = 40;
-  const W = padL + 3*(panelW+gap) + 330;
-  const H = padT + gH + padB;
-  const cv = new Canvas(W, H, [252,251,248]);
-
-  const views = [
-    {label:'FRONT  正视', yaw:0},
-    {label:'SIDE  侧视',  yaw:90},
-    {label:'BACK  背视',  yaw:180}
-  ];
-
-  views.forEach((vw, vi)=>{
-    const gx0 = padL + vi*(panelW+gap);
-    const gy0 = padT;
-    const baseY = gy0 + gH;
-    const cx = gx0 + panelW/2;
-
-    for(let g=0; g<=ROWS; g++){
-      const y = baseY - g*CELL;
-      for(let x=gx0; x<gx0+panelW; x++) dot(cv,[x,y], (g%4===0)?[40,80,155]:[176,192,226]);
-      if(vi===0 && g%4===0) text(cv, gx0-30, y-7, String(g), 2, [40,75,140]);
-    }
-    for(let k=0; k<=22; k++){
-      const x = gx0 + k*CELL;
-      for(let y=gy0; y<=baseY; y++) dot(cv,[x,y], (k%4===0)?[40,80,155]:[176,192,226]);
-    }
-    for(let y=gy0; y<=baseY; y++) dot(cv,[cx,y], [214,86,64]);
-
-    const a = vw.yaw*Math.PI/180, ca=Math.cos(a), sa=Math.sin(a);
-    const depth = new Float32Array(W*H).fill(1e9);
-    for(const q of quads){
-      const pts = q.pts.map(pp=>{
-        const rx =  pp[0]*ca - pp[2]*sa;
-        const rz =  pp[0]*sa + pp[2]*ca;
-        return [cx + rx*CELL, baseY - pp[1]*CELL, rz];
-      });
-      const n = [q.n[0]*ca - q.n[2]*sa, q.n[1], q.n[0]*sa + q.n[2]*ca];
-      const col = shade(hex2rgb(PALETTE[q.slot] ?? PALETTE.skin), n);
-      for(const t of [[0,1,2],[0,2,3]]){
-        const A=pts[t[0]], B=pts[t[1]], C=pts[t[2]];
-        const x0=Math.max(0,Math.floor(Math.min(A[0],B[0],C[0]))), x1=Math.min(W-1,Math.ceil(Math.max(A[0],B[0],C[0])));
-        const y0=Math.max(0,Math.floor(Math.min(A[1],B[1],C[1]))), y1=Math.min(H-1,Math.ceil(Math.max(A[1],B[1],C[1])));
-        const area=(B[0]-A[0])*(C[1]-A[1])-(C[0]-A[0])*(B[1]-A[1]);
-        if(Math.abs(area)<1e-9) continue;
-        const inv=1/area;
-        for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
-          const px=x+.5, py=y+.5;
-          const w0=((B[0]-px)*(C[1]-py)-(C[0]-px)*(B[1]-py))*inv;
-          const w1=((C[0]-px)*(A[1]-py)-(A[0]-px)*(C[1]-py))*inv;
-          const w2=1-w0-w1;
-          if(w0<0||w1<0||w2<0) continue;
-          const z=w0*A[2]+w1*B[2]+w2*C[2];
-          const di=y*W+x;
-          if(-z < depth[di]){
-            depth[di] = -z;
-            const o=di*3;
-            cv.buf[o]=col[0]; cv.buf[o+1]=col[1]; cv.buf[o+2]=col[2];
-          }
-        }
-      }
-    }
-    const lab = vw.label;
-    text(cv, cx - lab.length*6*2/2, baseY+22, lab, 2, [35,35,35]);
-  });
-
-  const tx = padL + 3*(panelW+gap) + 10;
-  let ty = padT;
-  text(cv, tx, ty, 'PARTS  W X H X D', 2, [30,30,30]); ty += 28;
-  for(const it of partInfo){
-    text(cv, tx, ty, it.name.toUpperCase().padEnd(6)+String(it.w).padStart(3)+' X '+String(it.h).padStart(2)+' X '+String(it.d).padStart(2)+'  Y'+String(it.y0).padStart(3)+'-'+it.y1, 2, [45,45,45]);
-    ty += 24;
-  }
-  ty += 14;
-  text(cv, tx, ty, 'TOTAL '+ (mx[0]-mn[0]) + ' X ' + (mx[1]-mn[1]) + ' X ' + (mx[2]-mn[2]), 2, [170,55,40]); ty += 24;
-  text(cv, tx, ty, 'X '+mn[0]+'..'+mx[0]+'  Y '+mn[1]+'..'+mx[1]+'  Z '+mn[2]+'..'+mx[2], 2, [110,110,105]);
-
-  text(cv, 20, 18, 'BASE MODEL  /  THREE VIEWS  /  STEP 1', 3, [30,30,30]);
-  text(cv, 20, 52, 'ORTHOGRAPHIC  -  1 CELL = 1 VOXEL = 1/32 TILE', 2, [120,118,112]);
-
-  fs.writeFileSync(path.join(outDir,'step1-base.png'), cv.png());
-}
-
 const results=[];
 for(const name of PART_ORDER){
   const r = renderPart(name, 'STEP 1  BASE');
@@ -430,6 +324,5 @@ for(const name of PART_ORDER){
 }
 for(const [name, r] of results) console.log(name+': '+r.cells.join(' x ')+' vox  |  '+r.quads+' quads  |  y '+r.mn[1]+'-'+r.mx[1]);
 if(!results.length) console.log('no parts defined yet');
-renderAssembly();
 const g = renderPartGrid('head');
 if(g) console.log('grid sheet -> review/character/grid-head.png');

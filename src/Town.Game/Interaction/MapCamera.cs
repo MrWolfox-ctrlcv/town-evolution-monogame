@@ -6,8 +6,7 @@ namespace Town.Game.Interaction;
 
 public sealed class MapCamera
 {
-    /// <summary>Yaw 0 is north-up. A positive yaw swings the eye east, so the map turns 30 degrees anticlockwise.</summary>
-    public float Yaw=MathHelper.Pi/6,Zoom=20;
+    public float Yaw=.68f,Zoom=20;
     public Vector3 Target=new(0,.8f,0);
     public Matrix View {get;private set;}
     public Matrix Projection {get;private set;}
@@ -33,6 +32,7 @@ public sealed class MapCamera
         foreach(var (x,z) in Walk(world,ray,distance))
         {
             int h=world.Height(x,z);
+            if(h==0)continue;
             var hit=ray.Intersects(new BoundingBox(new(x,0,z),new(x+1,h*World.Step,z+1)));
             if(hit.HasValue&&hit.Value<distance){distance=hit.Value;selected=new(x,z);}
         }
@@ -47,8 +47,10 @@ public sealed class MapCamera
     /// <summary>2D DDA: visit only the columns the picking ray crosses instead of all 9216 cells.</summary>
     private static IEnumerable<Cell> Walk(World world,Ray ray,float limit)
     {
-        if(MathF.Abs(ray.Direction.Y)<1e-6f)yield break;
-        float entry=Math.Max(0,-ray.Position.Y/ray.Direction.Y);
+        var bounds=new BoundingBox(new(-World.Half,0,-World.Half),
+            new(World.Half,World.MaxHeight*World.Step,World.Half));
+        if(ray.Intersects(bounds) is not float boundary||boundary>limit)yield break;
+        float entry=boundary+.0001f;
         var start=ray.Position+ray.Direction*entry;
         float dx=ray.Direction.X,dz=ray.Direction.Z;
         int x=(int)MathF.Floor(start.X),z=(int)MathF.Floor(start.Z);
@@ -57,11 +59,9 @@ public sealed class MapCamera
         float tMaxZ=dz==0?float.MaxValue:(stepZ>0?z+1-start.Z:start.Z-z)/MathF.Abs(dz);
         float tDeltaX=dx==0?float.MaxValue:MathF.Abs(1/dx),tDeltaZ=dz==0?float.MaxValue:MathF.Abs(1/dz);
         float t=entry;
-        for(int guard=0;guard<World.Size*3;guard++)
+        for(int guard=0;guard<World.Size*3&&t<=limit&&World.Inside(x,z);guard++)
         {
-            if(World.Inside(x,z))yield return new(x,z);
-            if(t>limit&&World.Inside(x,z))yield break;
-            if(t>limit&&(x<-World.Half||x>=World.Half||z<-World.Half||z>=World.Half))yield break;
+            yield return new(x,z);
             if(tMaxX<tMaxZ){x+=stepX;t=entry+tMaxX;tMaxX+=tDeltaX;}else{z+=stepZ;t=entry+tMaxZ;tMaxZ+=tDeltaZ;}
         }
     }

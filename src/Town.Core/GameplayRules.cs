@@ -24,6 +24,36 @@ public sealed partial class World
         Require(nextId<1_000_000_000&&objects.Count<400,"已达物件上限");var valid=CanPlace(kind,x,z,rotation);Require(valid.Ok,valid.Message);
         var b=new PlacedObject(nextId++,kind,x,z,rotation);AddObject(b);if(kind=="farm")play.Farms.Add(new(b.Id,false,new CropCell?[9]));return b;
     }
+    public bool IsExcavationTarget(Cell cell)
+    {
+        var (x, z) = cell;
+        int height = Height(x, z);
+        if (height == 0) return false;
+        var surface = Surface(x, z);
+        if (surface == GroundSurface.Stone) return true;
+
+        // Level ground can be farmed as soon as it is filled back in.
+        if (Height(x + 1, z) == height && Height(x, z + 1) == height && Height(x + 1, z + 1) == height)
+            return false;
+        return surface == GroundSurface.Soil || surface == GroundSurface.Grass &&
+            (IsLowerLand(x - 1, z) || IsLowerLand(x + 1, z) || IsLowerLand(x, z - 1) || IsLowerLand(x, z + 1));
+
+        bool IsLowerLand(int otherX, int otherZ)
+        {
+            int adjacent = Height(otherX, otherZ);
+            return adjacent > 0 && adjacent < height;
+        }
+    }
+
+    public bool IsSoilFillTarget(Cell cell)
+    {
+        var (x, z) = cell;
+        if (!Inside(x, z)) return false;
+        int height = Height(x, z);
+        return height == 0 || Surface(x, z) == GroundSurface.Soil && height < MaxHeight &&
+            (Height(x - 1, z) > height || Height(x + 1, z) > height || Height(x, z - 1) > height || Height(x, z + 1) > height);
+    }
+
     private void EditableGround(int x,int z)
     {
         Require(Inside(x,z),"超出地图");Require(Occupant(x,z)is null&&!HasNature(x,z),"地面被占用");Require(!play.Piles.Any(p=>p.X==x&&p.Z==z)&&!play.Drops.Any(d=>d.X==x&&d.Z==z),"先收集地面物品");
@@ -146,11 +176,11 @@ public sealed partial class World
             default:throw new RuleFailure("工具用途尚未开放");
         }
     }
-    private void StartProcessing(PlacedObject b,string recipe,bool attached)
+    private void StartProcessing(PlacedObject b,string recipe,bool attached,bool residentSupplies=false)
     {
         Require(Processing.TryGetValue(recipe,out var rule)&&rule.Building==b.Kind,"这座建筑不能加工该配方");Require(!play.Jobs.Any(j=>j.Id==b.Id),"已有加工任务，请先领取");
         if(attached){var a=play.Attachments.Find(a=>a.Id==b.Id);Require(a is not null&&rule!.Inputs.All(p=>a.Stock.GetValueOrDefault(p.Item)>=p.Amount),"建筑上投入的材料不足");foreach(var input in rule!.Inputs)a!.Stock[input.Item]-=input.Amount;}
-        else foreach(var input in rule!.Inputs)Take(input.Item,input.Amount);
+        else if(!residentSupplies)foreach(var input in rule!.Inputs)Take(input.Item,input.Amount);
         play.Jobs.Add(new(b.Id,recipe,play.Clock+rule!.Ticks));
     }
     private Result ExecuteGameplay(WorldCommand c)
@@ -169,7 +199,15 @@ public sealed partial class World
                     surfaces[Index(c.X,c.Z)]=left>=RockLine?DefaultSurface(left):(byte)GroundSurface.Soil;
                     DropNear(excavated,rock?1:1,c.X,c.Z,true,true);Discover(rock?"gather-stone":"gather-soil");break;
                 case "terrainFill":
-                    EditableGround(c.X,c.Z);Require(Height(c.X,c.Z)<MaxHeight,$"最多{MaxHeight}层");Take("soil",1);heights[Index(c.X,c.Z)]++;surfaces[Index(c.X,c.Z)]=(byte)GroundSurface.Soil;break;
+                    EditableGround(c.X,c.Z);Require(Height(c.X,c.Z)<MaxHeight,$"最多{MaxHeight}层");
+                    if(c.SourceId==0)Take("soil",1);
+                    else
+                    {
+                        var soilPile=c.Piles?.SingleOrDefault(p=>p.Id==c.SourceId);
+                        Require(soilPile is { Item:"soil" },"填土需要选中的土料堆");
+                        ConsumePile(soilPile,1);
+                    }
+                    heights[Index(c.X,c.Z)]++;surfaces[Index(c.X,c.Z)]=(byte)GroundSurface.Soil;break;
                 case "stockDrop":
                     Require(c.Quantity>0&&c.Quantity<=StackLimit(c.Item),"物品数量无效");var target=Occupant(c.X,c.Z);
                     if(target is not null){if(target.Kind=="farm"&&IsCrop(c.Item))PlantCell(target,c.FarmCell,c.Item);else{Take(c.Item,1);Attach(target,c.Item);}}

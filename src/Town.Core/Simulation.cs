@@ -26,7 +26,12 @@ public sealed class Simulation
         while (accumulated + 1e-10 >= StepSeconds)
         {
             accumulated -= StepSeconds; Ticks++;
-            if(World.AdvancePlay())changes.Enqueue(new(++Revision,"growth",[],null));
+            if (World.AdvancePlay())
+            {
+                bool terrainChanged = World.ResidentDigs.Count != 0;
+                changes.Enqueue(new(++Revision, terrainChanged ? "terrainDig" : "growth",
+                    terrainChanged ? World.ResidentDigs.ToArray() : [], null));
+            }
             while (pending.TryDequeue(out var command)) Apply(command);
         }
     }

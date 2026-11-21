@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)..\Town.Content\Generated\picking.bin" LogicalName="Town.Game.Picking.bin" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)..\..\assets\character\resident-v2.json" LogicalName="Town.Game.Resident.json" />
     <Folder Include="$(MSBuildThisFileDirectory)Content\" />
   </ItemGroup>
   <ItemGroup>

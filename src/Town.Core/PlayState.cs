@@ -39,6 +39,8 @@ internal sealed class PlayState
 public sealed partial class World
 {
     private PlayState play=new();
+    private readonly Residents.NpcRoster npcs=new();
+    public Residents.NpcRoster Npcs=>npcs;
     public static readonly IReadOnlyDictionary<string,string> ItemNames=new ReadOnlyDictionary<string,string>(new Dictionary<string,string>{
         ["vegetable"]="胡萝卜",["wheat"]="小麦",["lettuce"]="生菜",["rice"]="稻谷",["wood"]="木材",["stone"]="石料",["soil"]="土料",["mud"]="泥",
         ["treeSeed"]="树种",["sapling"]="树苗",["flour"]="面粉",["milledRice"]="大米",["bread"]="面包",["roastedCarrot"]="烤胡萝卜",["fertilizer"]="肥料"});
@@ -50,13 +52,16 @@ public sealed partial class World
     public IReadOnlyList<Attachment> Attachments=>play.Attachments.AsReadOnly();
     public IReadOnlyDictionary<string,int> Discoveries=>new ReadOnlyDictionary<string,int>(play.Discoveries);
     public long Clock=>play.Clock;
+    /// <summary>演示与检查用：直接推进玩法时钟，让作物和加工到期。</summary>
+    public void SetClock(long clock)=>play.Clock=Math.Max(0,clock);
     /// <summary>Deterministic growth cursor; saved so grass and saplings keep spreading across a reload.</summary>
     public long Grown {get;private set;}
     public IEnumerable<NaturalObject> LiveTrees=>nature.Where(TreeAlive).Concat(play.Trees.Select(t=>new NaturalObject(t.X,t.Z,t.Variant)));
     public bool TreeMature(int x,int z)=>play.Trees.Find(t=>t.X==x&&t.Z==z)is not { } planted||planted.MatureTick<=play.Clock;
     public float TreeScale(int x,int z)=>TreeMature(x,z)?1.15f:.38f;
     public int UsedStorage=>play.Stock.Values.Sum();
-    public int Capacity=>objects.Sum(o=>o.Kind switch{"warehouse" or "transportWarehouse"=>16,"expandedWarehouse"=>32,_=>0});
+    public static int StorageCapacity(string building)=>building switch{"warehouse" or "transportWarehouse"=>16,"expandedWarehouse"=>32,_=>0};
+    public int Capacity=>objects.Sum(o=>StorageCapacity(o.Kind));
     public int Stock(string item)=>play.Stock.GetValueOrDefault(item);
     public bool TreeAlive(NaturalObject tree)=>!play.ClearedTrees.Contains(Index(tree.X,tree.Z));
     public FarmState? Farm(int id)=>play.Farms.Find(f=>f.Id==id);
@@ -76,7 +81,7 @@ public sealed partial class World
     }
     private void InitializeGameplay()
     {
-        play.Farms.Clear();
+        play.Farms.Clear();npcs.Clear();
         foreach(string item in ItemNames.Keys)play.Stock[item]=IsCrop(item)?1:0;
         foreach(var o in objects.Where(o=>o.Kind=="farm"))play.Farms.Add(new(o.Id,false,Enumerable.Range(0,9).Select(_=>(CropCell?)new CropCell(o.Rotation%2==0?"wheat":"lettuce",0)).ToArray()));
     }
@@ -88,8 +93,10 @@ public sealed partial class World
     /// <summary>Runs every tick; returns true when the renderer must refresh growth-driven art.</summary>
     internal bool AdvancePlay()
     {
+        ResidentDigs.Clear();
         play.Clock++;
         bool changed=play.Farms.Any(f=>f.Cells.Any(c=>c is not null&&(c.ReadyTick-play.Clock is 0 or 100 or 200)))||play.Jobs.Any(j=>j.ReadyTick==play.Clock)||play.Trees.Any(t=>t.MatureTick==play.Clock);
+        changed|=npcs.Tick(this);
         if(play.Clock%(SpreadTicks/2)==0)changed|=Spread();
         return changed;
     }
@@ -140,6 +147,7 @@ public sealed partial class World
         bool Id(int id)=>id>0&&id<nextId&&ids.Add(id);
         foreach(var p in play.Piles){if(p is null||!Id(p.Id)||!ItemNames.ContainsKey(p.Item)||p.Amount<1||p.Amount>StackLimit(p.Item)||!cells.Add(new(p.X,p.Z))||HasNature(p.X,p.Z)||!LooseGround(p.X,p.Z))throw new FormatException("地面材料堆无效");}
         foreach(var p in play.Drops){if(p is null||!Id(p.Id)||!ItemNames.ContainsKey(p.Item)||p.Amount is <1 or >10||!float.IsFinite(p.OffsetX)||!float.IsFinite(p.OffsetZ)||p.OffsetX is <.1f or >.9f||p.OffsetZ is <.1f or >.9f||HasNature(p.X,p.Z)||cells.Contains(new(p.X,p.Z))||!dropSlots.Add((p.X,p.Z,p.OffsetX,p.OffsetZ))||!DropGround(p.X,p.Z))throw new FormatException("掉落物记录无效");}
+        foreach(var npc in Npcs.All)if(npc.HasCart&&!Id(npc.CartId))throw new FormatException("居民手推车身份重复");
         foreach(var t in play.Trees){if(t is null||!Id(t.Id)||!LooseGround(t.X,t.Z,true)||!cells.Add(new(t.X,t.Z))||!double.IsFinite(t.Variant)||t.Variant is <0 or >1||t.MatureTick<0||t.MatureTick>play.Clock+600)throw new FormatException("树苗记录无效");}
         if(play.Farms.Select(f=>f.Id).Distinct().Count()!=play.Farms.Count||play.Jobs.Select(f=>f.Id).Distinct().Count()!=play.Jobs.Count||play.Attachments.Select(f=>f.Id).Distinct().Count()!=play.Attachments.Count)throw new FormatException("建筑状态重复");
         foreach(var f in play.Farms){if(!byId.TryGetValue(f.Id,out var o)||o.Kind!="farm"||f.Cells.Length!=9||f.Cells.Any(c=>c is not null&&(!IsCrop(c.Crop)||(c.Crop=="rice")!=f.Irrigated||c.ReadyTick<0||c.ReadyTick>play.Clock+300||c.Yield is <1 or >10))||!f.Box&&f.BoxStock?.Values.Sum()>0||f.BoxStock is not null&&(!StockValid(f.BoxStock)||f.BoxStock.Values.Sum()>16))throw new FormatException("农田状态无效");}

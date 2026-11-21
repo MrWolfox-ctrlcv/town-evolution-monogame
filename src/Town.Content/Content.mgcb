@@ -24,7 +24,7 @@
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyEnabled=False
-/processorParam:GenerateMipmaps=False
+/processorParam:GenerateMipmaps=True
 /processorParam:GenerateTangentFrames=False
 /processorParam:PremultiplyVertexColors=False
 /processorParam:TextureFormat=Color
@@ -34,7 +34,7 @@
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyEnabled=False
-/processorParam:GenerateMipmaps=False
+/processorParam:GenerateMipmaps=True
 /processorParam:GenerateTangentFrames=False
 /processorParam:PremultiplyVertexColors=False
 /processorParam:TextureFormat=Color
@@ -1389,6 +1389,16 @@
 /processorParam:PremultiplyVertexColors=False
 /processorParam:TextureFormat=Color
 /build:Generated/wooden-pier.obj;Models/wooden-pier.xnb
+
+#begin Generated/approved-tree-7-lod.obj
+/importer:FbxImporter
+/processor:ModelProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyVertexColors=False
+/processorParam:TextureFormat=Color
+/build:Generated/approved-tree-7-lod.obj;Models/approved-tree-7-lod.xnb
 
 #begin Generated/ui-font.png
 /importer:TextureImporter

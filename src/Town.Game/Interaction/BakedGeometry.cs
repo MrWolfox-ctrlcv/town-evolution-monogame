@@ -20,13 +20,15 @@ internal sealed class BakedGeometry(Vector3[] positions,int[] elements)
         }
         return result;
     }
-    public static float? Intersect(string asset,Ray worldRay,Matrix transform)
+    internal static BoundingBox? ModelBounds(string asset)
+        => models.TryGetValue(asset,out var model)?model.bounds:null;
+    public static float? Intersect(string asset,Ray worldRay,Matrix transform,float limit=float.MaxValue)
     {
         var model=models[asset];var inverse=Matrix.Invert(transform);
         // Leave direction unnormalised: triangle t stays in world-distance units.
         var ray=new Ray(Vector3.Transform(worldRay.Position,inverse),Vector3.TransformNormal(worldRay.Direction,inverse));
-        if(ray.Intersects(model.bounds)is null)return null;
-        float nearest=float.MaxValue;
+        if(ray.Intersects(model.bounds)is not float boundsHit||boundsHit>limit)return null;
+        float nearest=limit;
         for(int n=0;n<model.indices.Length;n+=3)
         {
             Vector3 a=model.vertices[model.indices[n]],e1=model.vertices[model.indices[n+1]]-a,e2=model.vertices[model.indices[n+2]]-a;
@@ -35,6 +37,6 @@ internal sealed class BakedGeometry(Vector3[] positions,int[] elements)
             var q=Vector3.Cross(s,e1);float v=Vector3.Dot(ray.Direction,q)*inv;if(v<0||u+v>1)continue;
             float t=Vector3.Dot(e2,q)*inv;if(t>=0&&t<nearest)nearest=t;
         }
-        return nearest<float.MaxValue?nearest:null;
+        return nearest<limit?nearest:null;
     }
 }

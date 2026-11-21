@@ -45,9 +45,9 @@ public sealed partial class World
         });
     private readonly int[] heights;
     private readonly byte[] surfaces;
-    /// <summary>Cells carved by the generated river; kept so sand never paints the banks.</summary>
-    internal readonly bool[] river = new bool[Size * Size];
     public int Seed {get;}
+    /// <summary>生成器标记：普通随机岛为空，演示岛为 "npc-demo"，读档时据此重建地形。</summary>
+    public string? IslandTag {get;set;}
     public const float WaterLevel=.22f;
     public GroundSurface Surface(int x,int z)=>Inside(x,z)?(GroundSurface)surfaces[Index(x,z)]:GroundSurface.Grass;
     public IReadOnlyList<byte> Surfaces=>Array.AsReadOnly(surfaces);
@@ -61,8 +61,7 @@ public sealed partial class World
     public IReadOnlyList<NaturalObject> Nature { get; }
     public int NextId => nextId;
     /// <summary>Water at zero, beach at one, rock from ten; every other height is open grass.</summary>
-    /// <summary>Layer one is the only beach layer; rock starts at RockLine and everything else is grass.</summary>
-    public static byte DefaultSurface(int height)=>(byte)(height<=1?GroundSurface.Sand:height>=RockLine?GroundSurface.Stone:GroundSurface.Grass);
+    public static byte DefaultSurface(int height)=>(byte)(height==1?GroundSurface.Sand:height>=RockLine?GroundSurface.Stone:GroundSurface.Grass);
     private World(int[] heights,int seed=0,byte[]? surfaces=null)
     {
         this.heights = heights;this.surfaces=surfaces??heights.Select(DefaultSurface).ToArray();Seed=seed;
@@ -73,6 +72,37 @@ public sealed partial class World
     public static bool Inside(int x, int z) => x >= -Half && x < Half && z >= -Half && z < Half;
     public static int Index(int x, int z) => (z + Half) * Size + x + Half;
     public int Height(int x, int z) => Inside(x, z) ? heights[Index(x, z)] : 0;
+
+    /// <summary>演示岛用：直接写入一列高度，不做挖填规则校验。</summary>
+    public void SetHeight(int x, int z, int height)
+    {
+        if (!Inside(x, z) || height < 0 || height > MaxHeight) return;
+        heights[Index(x, z)] = height;
+        surfaces[Index(x, z)] = DefaultSurface(height);
+    }
+
+    /// <summary>演示岛用：整体替换地形高度与地表。</summary>
+    public void ReplaceTerrain(int[] newHeights, byte[] newSurfaces)
+    {
+        if (newHeights.Length != heights.Length || newSurfaces.Length != surfaces.Length) throw new ArgumentException("地形尺寸不符");
+        newHeights.CopyTo(heights, 0);
+        newSurfaces.CopyTo(surfaces, 0);
+    }
+
+    /// <summary>演示岛用：清空天然植被。</summary>
+    public void ClearNature() => nature.Clear();
+
+    /// <summary>演示岛用：直接放一棵天然树。</summary>
+    public void AddNature(int x, int z, double variant)
+    {
+        if (Inside(x, z) && heights[Index(x, z)] > 0) nature.Add(new NaturalObject(x, z, Math.Clamp(variant, 0, 1)));
+    }
+
+    /// <summary>演示岛用：整张图都是水面、没有任何建筑的空白世界。</summary>
+    public static World CreateEmpty(int seed) => new(new int[Size * Size], seed);
+
+    /// <summary>演示岛用：地形清空后重新建立初始玩法状态（库存、农田）。</summary>
+    public void StartGameplay() => InitializeGameplay();
     public static double Hash(int x, int z)
     {
         unchecked
@@ -119,17 +149,23 @@ public sealed partial class World
     }
     public Result Execute(WorldCommand command)
     {
+        if (WouldFloodResident(command)) return new(false, "居民站在这一格");
         var candidate=Fork();
         Result result;try{candidate.CheckSources(command);result=candidate.ExecuteUnchecked(command);}catch(RuleFailure error){result=new(false,error.Message);}
         if(result.Ok)Adopt(candidate);
         return result;
     }
-    public Result Preview(WorldCommand command){var candidate=Fork();try{candidate.CheckSources(command);return candidate.ExecuteUnchecked(command);}catch(RuleFailure error){return new(false,error.Message);}}
+    public Result Preview(WorldCommand command){if(WouldFloodResident(command))return new(false,"居民站在这一格");var candidate=Fork();try{candidate.CheckSources(command);return candidate.ExecuteUnchecked(command);}catch(RuleFailure error){return new(false,error.Message);}}
     public CommandPreview PreviewPlan(WorldCommand command)
     {
+        if (WouldFloodResident(command)) return new(new(false, "居民站在这一格"), null);
         var candidate=Fork();Result result;try{candidate.CheckSources(command);result=candidate.ExecuteUnchecked(command);}catch(RuleFailure error){result=new(false,error.Message);}
         return new(result,result.Ok?candidate.objects.FirstOrDefault(o=>!objects.Contains(o)):null);
     }
+    private bool WouldFloodResident(WorldCommand command) =>
+        command.Type == "terrainDig" && Height(command.X, command.Z) == 1
+        && Npcs.All.Any(npc => npc.CellX == command.X && npc.CellZ == command.Z);
+
     private Result ExecuteUnchecked(WorldCommand command)
     {
         if(command.Type is not ("place" or "move" or "remove" or "raise" or "lower"))return ExecuteGameplay(command);
@@ -156,7 +192,7 @@ public sealed partial class World
             var item = Occupant(x, z);
             if (item is null) return new(false, "这里没有可拆除的建筑或道路");
             if(play.Attachments.Any(a=>a.Id==item.Id&&a.Stock.Values.Sum()>0)||play.Jobs.Any(j=>j.Id==item.Id)||Farm(item.Id)is { } f&&(f.Cells.Any(c=>c is not null)||f.BoxStock?.Values.Sum()>0))return new(false,"先取回材料、完成加工并清空农田");
-            int storage=item.Kind switch{"warehouse" or "transportWarehouse"=>16,"expandedWarehouse"=>32,_=>0};if(UsedStorage>Capacity-storage)return new(false,"拆除后仓容不足，请先整理库存");
+            int storage=StorageCapacity(item.Kind);if(UsedStorage>Capacity-storage)return new(false,"拆除后仓容不足，请先整理库存");
             RemoveBuilding(item);
         }
         else if (command.Type is "raise" or "lower")
@@ -189,7 +225,9 @@ public sealed partial class World
     }
     internal static World Restore(SaveData data)
     {
-        var world = Create(data.Seed);
+        var world = CreateEmpty(data.Seed);
+        world.IslandTag = data.Island;
+        world.Grown = data.Grown;
         world.RestoreGameplay(data.Gameplay);
         if(data.Heights.Length!=world.heights.Length)throw new FormatException("地形尺寸不符");
         data.Heights.CopyTo(world.heights, 0);
@@ -202,6 +240,9 @@ public sealed partial class World
             if (item is null || item.Kind is null || item.Id < 1 || item.Id >= data.NextId || !ids.Add(item.Id) || !world.CanPlace(item.Kind, item.X, item.Z, item.Rotation).Ok) throw new FormatException("建筑占用或身份不合法");
             world.AddObject(item);
         }
-        world.nextId = data.NextId;if(data.Gameplay is null)world.MigrateLegacyGameplay();world.ValidateGameplay();return world;
+        world.nextId = data.NextId;if(data.Gameplay is null)world.MigrateLegacyGameplay();
+        world.npcs.Restore(data.Residents ?? []);
+        world.npcs.Refresh(world);
+        world.ValidateGameplay();return world;
     }
 }
