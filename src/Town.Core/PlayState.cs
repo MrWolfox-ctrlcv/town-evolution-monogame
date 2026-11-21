@@ -60,7 +60,8 @@ public sealed partial class World
     public bool TreeMature(int x,int z)=>play.Trees.Find(t=>t.X==x&&t.Z==z)is not { } planted||planted.MatureTick<=play.Clock;
     public float TreeScale(int x,int z)=>TreeMature(x,z)?1.15f:.38f;
     public int UsedStorage=>play.Stock.Values.Sum();
-    public int Capacity=>objects.Sum(o=>o.Kind switch{"warehouse" or "transportWarehouse"=>16,"expandedWarehouse"=>32,_=>0});
+    public static int StorageCapacity(string building)=>building switch{"warehouse" or "transportWarehouse"=>16,"expandedWarehouse"=>32,_=>0};
+    public int Capacity=>objects.Sum(o=>StorageCapacity(o.Kind));
     public int Stock(string item)=>play.Stock.GetValueOrDefault(item);
     public bool TreeAlive(NaturalObject tree)=>!play.ClearedTrees.Contains(Index(tree.X,tree.Z));
     public FarmState? Farm(int id)=>play.Farms.Find(f=>f.Id==id);
@@ -70,14 +71,13 @@ public sealed partial class World
     private World Fork()
     {
         var copy=new World(heights.ToArray(),Seed,surfaces.ToArray()){nextId=nextId,Grown=Grown,play=PlayState.Restore(play.Snapshot())};
-        copy.npcs.Restore(npcs.Snapshot());
         copy.nature.AddRange(nature);foreach(var item in objects)copy.AddObject(item);return copy;
     }
     private void Adopt(World other)
     {
         other.heights.CopyTo(heights,0);other.surfaces.CopyTo(surfaces,0);nature.Clear();nature.AddRange(other.nature);
         objects.Clear();byId.Clear();Array.Clear(occupancy);
-        foreach(var item in other.objects)AddObject(item);play=other.play;nextId=other.nextId;Grown=other.Grown;npcs.Restore(other.npcs.Snapshot());
+        foreach(var item in other.objects)AddObject(item);play=other.play;nextId=other.nextId;Grown=other.Grown;
     }
     private void InitializeGameplay()
     {
@@ -93,6 +93,7 @@ public sealed partial class World
     /// <summary>Runs every tick; returns true when the renderer must refresh growth-driven art.</summary>
     internal bool AdvancePlay()
     {
+        ResidentDigs.Clear();
         play.Clock++;
         bool changed=play.Farms.Any(f=>f.Cells.Any(c=>c is not null&&(c.ReadyTick-play.Clock is 0 or 100 or 200)))||play.Jobs.Any(j=>j.ReadyTick==play.Clock)||play.Trees.Any(t=>t.MatureTick==play.Clock);
         changed|=npcs.Tick(this);
@@ -146,6 +147,7 @@ public sealed partial class World
         bool Id(int id)=>id>0&&id<nextId&&ids.Add(id);
         foreach(var p in play.Piles){if(p is null||!Id(p.Id)||!ItemNames.ContainsKey(p.Item)||p.Amount<1||p.Amount>StackLimit(p.Item)||!cells.Add(new(p.X,p.Z))||HasNature(p.X,p.Z)||!LooseGround(p.X,p.Z))throw new FormatException("地面材料堆无效");}
         foreach(var p in play.Drops){if(p is null||!Id(p.Id)||!ItemNames.ContainsKey(p.Item)||p.Amount is <1 or >10||!float.IsFinite(p.OffsetX)||!float.IsFinite(p.OffsetZ)||p.OffsetX is <.1f or >.9f||p.OffsetZ is <.1f or >.9f||HasNature(p.X,p.Z)||cells.Contains(new(p.X,p.Z))||!dropSlots.Add((p.X,p.Z,p.OffsetX,p.OffsetZ))||!DropGround(p.X,p.Z))throw new FormatException("掉落物记录无效");}
+        foreach(var npc in Npcs.All)if(npc.HasCart&&!Id(npc.CartId))throw new FormatException("居民手推车身份重复");
         foreach(var t in play.Trees){if(t is null||!Id(t.Id)||!LooseGround(t.X,t.Z,true)||!cells.Add(new(t.X,t.Z))||!double.IsFinite(t.Variant)||t.Variant is <0 or >1||t.MatureTick<0||t.MatureTick>play.Clock+600)throw new FormatException("树苗记录无效");}
         if(play.Farms.Select(f=>f.Id).Distinct().Count()!=play.Farms.Count||play.Jobs.Select(f=>f.Id).Distinct().Count()!=play.Jobs.Count||play.Attachments.Select(f=>f.Id).Distinct().Count()!=play.Attachments.Count)throw new FormatException("建筑状态重复");
         foreach(var f in play.Farms){if(!byId.TryGetValue(f.Id,out var o)||o.Kind!="farm"||f.Cells.Length!=9||f.Cells.Any(c=>c is not null&&(!IsCrop(c.Crop)||(c.Crop=="rice")!=f.Irrigated||c.ReadyTick<0||c.ReadyTick>play.Clock+300||c.Yield is <1 or >10))||!f.Box&&f.BoxStock?.Values.Sum()>0||f.BoxStock is not null&&(!StockValid(f.BoxStock)||f.BoxStock.Values.Sum()>16))throw new FormatException("农田状态无效");}

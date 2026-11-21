@@ -149,17 +149,23 @@ public sealed partial class World
     }
     public Result Execute(WorldCommand command)
     {
+        if (WouldFloodResident(command)) return new(false, "居民站在这一格");
         var candidate=Fork();
         Result result;try{candidate.CheckSources(command);result=candidate.ExecuteUnchecked(command);}catch(RuleFailure error){result=new(false,error.Message);}
         if(result.Ok)Adopt(candidate);
         return result;
     }
-    public Result Preview(WorldCommand command){var candidate=Fork();try{candidate.CheckSources(command);return candidate.ExecuteUnchecked(command);}catch(RuleFailure error){return new(false,error.Message);}}
+    public Result Preview(WorldCommand command){if(WouldFloodResident(command))return new(false,"居民站在这一格");var candidate=Fork();try{candidate.CheckSources(command);return candidate.ExecuteUnchecked(command);}catch(RuleFailure error){return new(false,error.Message);}}
     public CommandPreview PreviewPlan(WorldCommand command)
     {
+        if (WouldFloodResident(command)) return new(new(false, "居民站在这一格"), null);
         var candidate=Fork();Result result;try{candidate.CheckSources(command);result=candidate.ExecuteUnchecked(command);}catch(RuleFailure error){result=new(false,error.Message);}
         return new(result,result.Ok?candidate.objects.FirstOrDefault(o=>!objects.Contains(o)):null);
     }
+    private bool WouldFloodResident(WorldCommand command) =>
+        command.Type == "terrainDig" && Height(command.X, command.Z) == 1
+        && Npcs.All.Any(npc => npc.CellX == command.X && npc.CellZ == command.Z);
+
     private Result ExecuteUnchecked(WorldCommand command)
     {
         if(command.Type is not ("place" or "move" or "remove" or "raise" or "lower"))return ExecuteGameplay(command);
@@ -186,7 +192,7 @@ public sealed partial class World
             var item = Occupant(x, z);
             if (item is null) return new(false, "这里没有可拆除的建筑或道路");
             if(play.Attachments.Any(a=>a.Id==item.Id&&a.Stock.Values.Sum()>0)||play.Jobs.Any(j=>j.Id==item.Id)||Farm(item.Id)is { } f&&(f.Cells.Any(c=>c is not null)||f.BoxStock?.Values.Sum()>0))return new(false,"先取回材料、完成加工并清空农田");
-            int storage=item.Kind switch{"warehouse" or "transportWarehouse"=>16,"expandedWarehouse"=>32,_=>0};if(UsedStorage>Capacity-storage)return new(false,"拆除后仓容不足，请先整理库存");
+            int storage=StorageCapacity(item.Kind);if(UsedStorage>Capacity-storage)return new(false,"拆除后仓容不足，请先整理库存");
             RemoveBuilding(item);
         }
         else if (command.Type is "raise" or "lower")
@@ -219,8 +225,9 @@ public sealed partial class World
     }
     internal static World Restore(SaveData data)
     {
-        var world = data.Island == NpcDemoIsland.Tag ? NpcDemoIsland.CreateForRestore() : Create(data.Seed);
+        var world = CreateEmpty(data.Seed);
         world.IslandTag = data.Island;
+        world.Grown = data.Grown;
         world.RestoreGameplay(data.Gameplay);
         if(data.Heights.Length!=world.heights.Length)throw new FormatException("地形尺寸不符");
         data.Heights.CopyTo(world.heights, 0);

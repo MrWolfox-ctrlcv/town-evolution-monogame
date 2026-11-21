@@ -27,7 +27,7 @@ public static class NpcNavigation
     public sealed record PathResult(List<Cell> Cells, bool Found, bool TooFar, int Expanded);
 
     /// <summary>A*，四方向，曼哈顿启发式（乘以最小步进代价，保持可采纳）。</summary>
-    public static PathResult FindPath(World world, int startX, int startZ, int goalX, int goalZ)
+    public static PathResult FindPath(World world, int startX, int startZ, int goalX, int goalZ, bool preferRoads = false)
     {
         var empty = new List<Cell>();
         if (startX == goalX && startZ == goalZ) return new(empty, true, false, 0);
@@ -57,6 +57,7 @@ public static class NpcNavigation
             {
                 int nx = cx + dx, nz = cz + dz;
                 if (StepCost(world, cx, cz, nx, nz) is not float step) continue;
+                if (preferRoads && world.Occupant(nx, nz)?.Kind != "road") step *= 1.25f;
                 int next = World.Index(nx, nz);
                 if (closed.Contains(next)) continue;
                 float tentative = cg + step;
@@ -97,5 +98,20 @@ public static class NpcNavigation
                 cells.Add((new Cell(x, z), Math.Abs(dx) + Math.Abs(dz)));
             }
         return cells.OrderBy(c => c.Distance).Select(c => c.Cell);
+    }
+
+    internal static IEnumerable<Cell> WorkCells(World world, Cell anchor, int width, int depth)
+    {
+        int east = anchor.X + width - 1, south = anchor.Z + depth - 1;
+        for (int x = anchor.X; x <= east; x++)
+        {
+            if (StepCost(world, x, anchor.Z, x, anchor.Z - 1) is not null) yield return new(x, anchor.Z - 1);
+            if (StepCost(world, x, south, x, south + 1) is not null) yield return new(x, south + 1);
+        }
+        for (int z = anchor.Z; z <= south; z++)
+        {
+            if (StepCost(world, anchor.X, z, anchor.X - 1, z) is not null) yield return new(anchor.X - 1, z);
+            if (StepCost(world, east, z, east + 1, z) is not null) yield return new(east + 1, z);
+        }
     }
 }

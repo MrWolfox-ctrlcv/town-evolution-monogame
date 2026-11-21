@@ -7,7 +7,8 @@ public sealed partial class TownGame
 {
     private string? dragMode,dragKind;
     private int dragQuantity=1,dragStock,dragSource,focusedBuilding;
-    private WorldHit? pressedHit;
+    private bool heldObjectChecked;
+    private string? pressedUiControl;
     private PlacedObject? heldBuilding;
     private Cell heldOffset;
     private GroundPile? heldPile;
@@ -22,11 +23,15 @@ public sealed partial class TownGame
     private WorldCommand? proposed;
     private CommandPreview? commandPreview;
     private string previewKey="";
-    private static readonly Dictionary<string,string> ToolNames=new(){["sickle"]="镰刀",["saw"]="锯子",["axe"]="斧子",["hammer"]="锤子",["diggingTool"]="挖掘工具",["wateringCan"]="水壶"};
+    private static readonly Dictionary<string,string> ToolNames=new(){["sickle"]="镰刀",["axe"]="斧子",["saw"]="锯子",["hammer"]="锤子",["diggingTool"]="挖掘工具",["wateringCan"]="水壶"};
+    private void ClearWorldSelection()
+    {
+        selectedNpc=0;focusedBuilding=0;residentOrder=ResidentOrder.Context;selected=null;lastHover=null;CancelGameplayDrag();
+    }
     private void CancelGameplayDrag()
     {
         dragMode=dragKind=null;heldBuilding=null;heldPile=null;proposed=null;commandPreview=null;previewKey="";
-        entitySources.Clear();pileSources.Clear();visitedCells.Clear();brushActed=false;lastBrushSample=null;brushPlantQueued=0;press=null;lastPointer=null;models?.SetPreview(null,simulation.World);if(surfaces is not null)RefreshSelection();
+        pressedUiControl=null;entitySources.Clear();pileSources.Clear();visitedCells.Clear();brushActed=false;lastBrushSample=null;brushPlantQueued=0;press=null;lastPointer=null;heldObjectChecked=false;models?.SetPreview(null,simulation.World);if(surfaces is not null)RefreshSelection();
     }
     private void GamePointer(Vector2 point,bool down,bool up)
     {
@@ -34,7 +39,7 @@ public sealed partial class TownGame
         if(options.ReviewDirectory is not null&&(down||up)){inputTrace.Enqueue($"{frames} {(down?"down":"up")} {point.X:0},{point.Y:0} {dragMode} {dragKind} {proposed?.Type} {proposed?.X},{proposed?.Z}");while(inputTrace.Count>20)inputTrace.Dequeue();}
         if(down)
         {
-            CancelGameplayDrag();press=point;lastPointer=point;previousBrush=point;pressTime=totalTime;dragged=false;
+            CancelGameplayDrag();press=point;lastPointer=point;previousBrush=point;pressTime=totalTime;dragged=false;pressedUiControl=ui.ControlAt(point);
             string? tag=ui.DragTag(point);
             if(tag is not null)
             {
@@ -43,46 +48,55 @@ public sealed partial class TownGame
                 if(dragMode=="stock"&&dragStock<=0){Notice("暂无"+World.ItemNames[dragKind]);CancelGameplayDrag();return;}
             }
             else if(IsBookHeader(point)){dragMode="book";}
-            else if(!ui.Hit(point,false))pressedHit=WorldPicking.Pick(simulation.World,camera,GraphicsDevice.Viewport,point,npcDemo);
         }
         if(press is Vector2 start&&!up)
         {
             if(Vector2.Distance(start,point)>6)dragged=true;
             if(dragMode=="book")MoveBook(point-(lastPointer??point));
             else if(dragMode is not null)UpdateGameplayDrag(point);
-            else if(!ui.Hit(start,false))
+            else if(pressedUiControl is null)
             {
-                if(!dragged&&totalTime-pressTime>=.4&&pressedHit?.Type is "building" or "farm" or "pile" or "drop")BeginObjectDrag(pressedHit);
+                if(!dragged&&!heldObjectChecked&&totalTime-pressTime>=.4)
+                {
+                    heldObjectChecked=true;
+                    var hit=WorldPicking.Pick(simulation.World,camera,GraphicsDevice.Viewport,start,npcRenderer);
+                    if(hit?.Type is "building" or "farm" or "pile" or "drop")BeginObjectDrag(hit);
+                }
                 if(dragMode is not null)UpdateGameplayDrag(point);
-                else if(dragged&&lastPointer is Vector2 previous)camera.Pan(point-previous,GraphicsDevice.Viewport.Height);
+                else if(dragged&&lastPointer is Vector2 previous)PanCamera(point-previous,GraphicsDevice.Viewport.Height);
             }
             lastPointer=point;
         }
         if(up&&press is Vector2 downPoint&&Vector2.Distance(downPoint,point)>6)dragged=true;
         if(up&&press is not null)
         {
-            if(dragMode is "tool" or "stock"&&!dragged&&ui.Hit(point,false))
+            if(dragMode is "tool" or "stock"&&!dragged&&pressedUiControl is not null&&pressedUiControl==ui.ControlAt(point))
             {ui.Hit(point,true);CancelGameplayDrag();}
             else if(dragMode is not null&&dragMode!="book")
             {
                 if(dragMode is "pile" or "drop"&&IsTray(point))Commit(new("pickup",0,0,SourceId:dragSource));
-                else if(!ui.Hit(point,false)){UpdateGameplayDrag(point);if(proposed is not null&&!brushActed)Commit(proposed);}
+                else if(!ui.Hit(point,false))
+                {
+                    UpdateGameplayDrag(point);
+                    if(proposed is not null&&!brushActed&&commandPreview?.Result.Ok==true)Commit(proposed);
+                }
                 else if(dragMode=="tool"&&!dragged)Notice("将"+ToolNames.GetValueOrDefault(dragKind!,dragKind!)+"拖到目标后松手");
                 CancelGameplayDrag();
             }
             else if(dragMode=="book")CancelGameplayDrag();
-            else if(!dragged&&!ui.Hit(point,true))
+            else if(!dragged)
             {
-                if(npcDemo&&ShiftDown())
+                if(pressedUiControl is not null)
                 {
-                    var target=camera.Pick(simulation.World,GraphicsDevice.Viewport,point,false);
-                    if(target is Cell cell)AssignSelectedResident(cell);
+                    if(pressedUiControl==ui.ControlAt(point))ui.Hit(point,true);
                 }
-                else TapWorld(point);
+                else if(!ui.Hit(point,false))TapWorld(point);
             }
-            press=null;lastPointer=null;reviewCapturePending=options.ReviewDirectory is not null;
+            pressedUiControl=null;
+            press=null;lastPointer=null;
+            if(!dragged&&options.ReviewDirectory is not null)reviewCapturePending=true;
         }
-        if(press is null&&!ui.Hit(point,false))SetCell(point);
+        if(press is null&&!MotionActive&&!ui.Hit(point,false))SetCell(point);
     }
     private void BeginObjectDrag(WorldHit hit)
     {
@@ -98,15 +112,15 @@ public sealed partial class TownGame
     }
     private void TapWorld(Vector2 point)
     {
-        var hit=WorldPicking.Pick(simulation.World,camera,GraphicsDevice.Viewport,point,npcDemo);focusedBuilding=0;
-        if(hit is null){selected=null;return;}selected=new(hit.X,hit.Z);RefreshSelection();
-        if(npcDemo&&hit.Type=="resident"){selectedNpc=hit.Id;var who=simulation.World.Npcs.All.FirstOrDefault(n=>n.Id==hit.Id);if(who is not null)Notice($"选中居民 {who.Id}：{who.Status}");return;}
+        var hit=WorldPicking.Pick(simulation.World,camera,GraphicsDevice.Viewport,point,npcRenderer);focusedBuilding=0;selectedNpc=0;residentOrder=ResidentOrder.Context;
+        if(hit is null){selected=null;RefreshSelection();return;}selected=new(hit.X,hit.Z);RefreshSelection();
+        if(hit.Type=="resident"){selectedNpc=hit.Id;return;}
         if(hit.Type is "drop" or "pile")Commit(new("pickup",hit.X,hit.Z,SourceId:hit.Id));
-        else if(hit.Type is "building" or "farm")focusedBuilding=hit.Id;
+        else if(hit.Type is "building" or "farm"){focusedBuilding=hit.Id;buildingActionPage=0;}
         else if(hit.Type=="tree"){hintTool="axe";hintUntil=totalTime+2;}
         else if(hit.Type=="resource"){hintTool="diggingTool";hintUntil=totalTime+2;}
     }
-    private void Commit(WorldCommand command){collectionOrigin=dragPoint;simulation.Enqueue(command);noticeUntil=totalTime+3;reviewCapturePending=options.ReviewDirectory is not null;}
+    private void Commit(WorldCommand command){collectionOrigin=dragPoint;simulation.Enqueue(command);reviewCapturePending=options.ReviewDirectory is not null;}
     private bool IsTray(Vector2 point){var p=point/ui.Scale;int h=(int)(GraphicsDevice.Viewport.Height/ui.Scale),w=(int)(GraphicsDevice.Viewport.Width/ui.Scale);return(p.X<HudMetrics.TrayWidth||p.X>w-HudMetrics.TrayWidth)&&p.Y>HudMetrics.StartY&&p.Y<HudMetrics.StartY+HudMetrics.Slot(h)*6;}
     private bool ScrollGameplay(int wheel)
     {
@@ -134,21 +148,32 @@ public sealed partial class TownGame
         }
         previousBrush=point;
     }
+    private void ClearDragPreview(World world)
+    {
+        if (commandPreview is null) return;
+        commandPreview=null;previewKey="";
+        models.SetPreview(null,world);
+        RefreshSelection();
+    }
     private void UpdateGameplayDrag(Vector2 point)
     {
         if(dragMode is null or "book")return;
         if(dragMode=="stock"&&dragged)quantityItem=null;
         Brush(point);var world=simulation.World;var hit=ui.Hit(point,false)?null:WorldPicking.Pick(world,camera,GraphicsDevice.Viewport,point);
-        proposed=null;if(hit is null){commandPreview=null;models.SetPreview(null,world);return;}
+        proposed=null;if(hit is null){ClearDragPreview(world);return;}
         var ground=camera.Pick(world,GraphicsDevice.Viewport,point,false)??new Cell(hit.X,hit.Z);
         selected=ground;
+        bool fillWithSoil = dragKind=="soil" && hit.Type=="ground" && world.IsSoilFillTarget(ground);
         if(dragMode=="stock")
         {
-            if(!brushActed)proposed=new("stockDrop",hit.Type is "building" or "farm" or "pile"?hit.X:ground.X,hit.Type is "building" or "farm" or "pile"?hit.Z:ground.Z,Item:dragKind!,Quantity:dragQuantity,FarmCell:hit.FarmCell,ExpectedStock:dragStock);
+            if(fillWithSoil)proposed=new("terrainFill",ground.X,ground.Z,Item:"soil",ExpectedStock:dragStock);
+            else if(!brushActed)proposed=new("stockDrop",hit.Type is "building" or "farm" or "pile"?hit.X:ground.X,hit.Type is "building" or "farm" or "pile"?hit.Z:ground.Z,Item:dragKind!,Quantity:dragQuantity,FarmCell:hit.FarmCell,ExpectedStock:dragStock);
         }
         else if(dragMode=="pile")
         {
-            proposed=new("movePile",ground.X,ground.Z,ObjectId:hit.Type=="building"?hit.Id:0,SourceId:dragSource,Piles:heldPile is null?[]:[heldPile]);
+            proposed=fillWithSoil && heldPile is not null
+                ? new("terrainFill",ground.X,ground.Z,SourceId:heldPile.Id,Piles:[heldPile])
+                : new("movePile",ground.X,ground.Z,ObjectId:hit.Type=="building"?hit.Id:0,SourceId:dragSource,Piles:heldPile is null?[]:[heldPile]);
         }
         else if(dragMode=="drop")proposed=new("moveDrop",ground.X,ground.Z,SourceId:dragSource);
         else if(dragMode=="building"&&heldBuilding is not null)
@@ -164,13 +189,19 @@ public sealed partial class TownGame
                 if(entitySources.Count==0&&hit.Type=="pile"&&pileSources.Count<2){var p=world.Piles.First(p=>p.Id==hit.Id);if(p.Item is "wood" or "stone"&&!pileSources.Any(s=>s.Item==p.Item))pileSources.Add(p);}
             }
             if(dragKind=="hammer"&&((entitySources.Count>0&&hit.Type is not ("building" or "farm"))||(pileSources.Count>0&&hit.Type is "building" or "farm" or "tree" or "resource" or "drop")))
-            {commandPreview=null;models.SetPreview(null,world);return;}
+            {ClearDragPreview(world);return;}
             if(dragKind=="wateringCan"&&hit.Type=="pile"&&pileSources.Sum(p=>p.Amount)<9){var p=world.Piles.First(p=>p.Id==hit.Id);if(p.Item=="soil"&&!pileSources.Any(s=>s.Id==p.Id))pileSources.Add(p);}
-            proposed=new(dragKind=="diggingTool"&&terrainMode!="farm"?(terrainMode=="dig"?"terrainDig":"terrainFill"):"tool",hit.Type!="ground"?hit.X:ground.X,hit.Type!="ground"?hit.Z:ground.Z,dragKind!,rotation,
+            string commandType="tool";
+            if(dragKind=="diggingTool")
+            {
+                if(hit.Type is not ("ground" or "resource")){ClearDragPreview(world);return;}
+                if(hit.Type=="resource" || world.IsExcavationTarget(ground))commandType="terrainDig";
+            }
+            proposed=new(commandType,hit.Type!="ground"?hit.X:ground.X,hit.Type!="ground"?hit.Z:ground.Z,dragKind!,rotation,
                 ObjectId:hit.Type is "building" or "farm" or "resource"?hit.Id:0,FarmCell:hit.FarmCell,Entities:entitySources.Count>=2?entitySources.ToArray():null,Piles:pileSources.Count>=2?pileSources.ToArray():null);
         }
-        if(proposed is null){models.SetPreview(null,world);return;}
-        string key=$"{simulation.Revision}:{proposed.Type}:{proposed.Kind}:{proposed.X}:{proposed.Z}:{proposed.Rotation}:{proposed.ObjectId}:{proposed.FarmCell}:{dragQuantity}:{string.Join(',',pileSources.Select(s=>s.Id))}:{string.Join(',',entitySources.Select(s=>s.Id))}";
+        if(proposed is null){ClearDragPreview(world);return;}
+        string key=$"{simulation.Revision}:{proposed.Type}:{proposed.Kind}:{proposed.X}:{proposed.Z}:{proposed.Rotation}:{proposed.ObjectId}:{proposed.FarmCell}:{proposed.SourceId}:{dragQuantity}:{string.Join(',',pileSources.Select(s=>s.Id))}:{string.Join(',',entitySources.Select(s=>s.Id))}";
         if(key==previewKey)return;previewKey=key;commandPreview=world.PreviewPlan(proposed);models.SetPreview(commandPreview.Ghost,world);
         var ghost=commandPreview.Ghost;surfaces.Select(world,ghost is null?ground:new Cell(ghost.X,ghost.Z),ghost?.Kind??"inspect",ghost?.Rotation??0,commandPreview.Result.Ok,pileSources.Select(p=>new Cell(p.X,p.Z)).Concat(entitySources.Select(e=>new Cell(e.X,e.Z))).ToArray(),proposed.Type=="terrainDig"?-1:proposed.Type=="terrainFill"?1:0);
     }

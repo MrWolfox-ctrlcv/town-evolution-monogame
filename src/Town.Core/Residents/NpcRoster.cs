@@ -16,6 +16,7 @@ public sealed class NpcRoster
     public bool TryAdd(World world, int residenceId, out NpcState npc)
     {
         npc = null!;
+        if (list.Count >= NpcDemoIsland.MaxResidents || nextId == int.MaxValue) return false;
         var residence = world.Objects.FirstOrDefault(o => o.Id == residenceId);
         if (residence is null || (residence.Kind != "residence" && residence.Kind != "house")) return false;
         if (list.Count(n => n.Home == residenceId) >= SlotsPerResidence) return false;
@@ -35,12 +36,11 @@ public sealed class NpcRoster
         for (int radius = 1; radius <= 5; radius++)
         {
             var ring = new List<Cell>();
-            for (int dz = -radius; dz <= radius; dz++)
-                for (int dx = -radius; dx <= radius; dx++)
+            for (int dz = -radius; dz < d + radius; dz++)
+                for (int dx = -radius; dx < w + radius; dx++)
                 {
-                    if (Math.Max(Math.Abs(dx), Math.Abs(dz)) != radius) continue;
+                    if (dx != -radius && dx != w + radius - 1 && dz != -radius && dz != d + radius - 1) continue;
                     int x = residence.X + dx, z = residence.Z + dz;
-                    if (x >= residence.X && x < residence.X + w && z >= residence.Z && z < residence.Z + d) continue;
                     if (!NpcNavigation.Passable(world, x, z)) continue;
                     if (taken.Any(n => n.CellX == x && n.CellZ == z)) continue;
                     ring.Add(new Cell(x, z));
@@ -52,13 +52,13 @@ public sealed class NpcRoster
 
     internal bool Tick(World world)
     {
-        bool moved = false;
+        bool changed = false;
         foreach (var npc in list)
         {
-            NpcTasks.Tick(world, npc);
-            moved |= NpcMover.Tick(world, npc);
+            changed |= NpcTasks.Tick(world, npc);
+            NpcMover.Tick(world, npc);
         }
-        return moved;
+        return changed;
     }
 
     internal void Clear() => list.Clear();
@@ -72,16 +72,22 @@ public sealed class NpcRoster
             var npc = new NpcState
             {
                 Id = save.Id, Home = save.Home, X = save.X, Z = save.Z, Facing = save.Facing,
-                Hunger = save.Hunger, Stamina = save.Stamina, CarriedKg = save.CarriedKg,
+                Hunger = save.Hunger, Stamina = save.Stamina, AutoHaul = save.AutoHaul, Workplace = save.Workplace, CartId = save.CartId,
             };
-            if (save.TaskKind == (int)NpcTaskKind.GoTo) npc.Task = NpcTask.WalkTo(save.TargetX, save.TargetZ, save.Label);
+            if (save.Cargo is not null)
+                foreach (var (item, amount) in save.Cargo) npc.CargoItems.Add(item, amount);
+            if (save.TaskKind != (int)NpcTaskKind.None)
+                npc.Task = new((NpcTaskKind)save.TaskKind, save.TargetX, save.TargetZ, save.Label,
+                    save.SourceId, save.FarmCell, save.Automatic, save.Item, save.DestinationId);
             list.Add(npc);
             nextId = Math.Max(nextId, save.Id + 1);
         }
     }
 
     internal NpcSave[] Snapshot() => list.Select(n => new NpcSave(n.Id, n.Home, n.X, n.Z, n.Facing, n.Hunger, n.Stamina, n.CarriedKg,
-        n.Task?.Kind is NpcTaskKind.GoTo ? (int)NpcTaskKind.GoTo : 0, n.Task?.TargetX ?? 0, n.Task?.TargetZ ?? 0, n.Task?.Label ?? "")).ToArray();
+        (int)(n.Task?.Kind ?? NpcTaskKind.None), n.Task?.TargetX ?? 0, n.Task?.TargetZ ?? 0, n.Task?.Label ?? "",
+        n.Task?.SourceId ?? 0, n.Task?.FarmCell ?? -1, n.Task?.Automatic ?? false, n.AutoHaul,
+        n.Cargo.Count == 0 ? null : new Dictionary<string, int>(n.CargoItems), n.Task?.Item ?? "", n.Task?.DestinationId ?? 0, n.Workplace, n.CartId)).ToArray();
 
     /// <summary>读档后重新贴上地面高度，并把已失效的路径清掉。</summary>
     internal void Refresh(World world)

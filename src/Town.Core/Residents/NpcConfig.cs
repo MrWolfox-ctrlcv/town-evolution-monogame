@@ -21,6 +21,9 @@ public static class NpcConfig
     // —— 负重 ——
     public const double BodyWeightKg = 60;
     public const double MaxCarryKg = 12;
+    public const double CartCapacityKg = 32;
+    public const float CartRoadSpeed = 1.8f;
+    public const float CartGroundSpeed = 1.4f;
 
     // —— 工作 ——
     public const float WorkSpeed = 1f;
@@ -31,6 +34,12 @@ public static class NpcConfig
     public const int StaminaMax = 100;
     public const int HungerDrainPerMinute = 20;
     public const int HungerSeekThreshold = 40;
+    public const int StaminaRestTarget = 85;
+    public const int StaminaRestPerSecond = 6;
+    public const int WalkDrainInterval = TicksPerSecond * 4;
+    public const int WorkDrainPerSecond = 2;
+    internal static readonly (string Item, int Filling)[] Food =
+        [("bread", 45), ("roastedCarrot", 35), ("vegetable", 25), ("lettuce", 20)];
 
     // —— 寻路代价（A*，四方向） ——
     public const float CostFlat = 10;

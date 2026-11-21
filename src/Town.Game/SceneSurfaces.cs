@@ -7,13 +7,35 @@ namespace Town.Game;
 
 public sealed class SceneSurfaces(GraphicsDevice device) : IDisposable
 {
-    private GpuSurface? roads,selection,grid;
+    private GpuSurface? roads,selection,grid,shore;
     private readonly GpuSurface water=Water(device);
-    private static GpuSurface Water(GraphicsDevice device){var m=new SurfaceMesh();m.Quad(new(-600,.22f,-600),new(-600,.22f,600),new(600,.22f,600),new(600,.22f,-600),Vector3.Up,new Color(110,179,177));return new(device,m);}
+    private static GpuSurface Water(GraphicsDevice device){var m=new SurfaceMesh();m.Quad(new(-600,World.WaterLevel,-600),new(-600,World.WaterLevel,600),new(600,World.WaterLevel,600),new(600,World.WaterLevel,-600),Vector3.Up,new Color(80,147,157));return new(device,m);}
+
+    public void RebuildShore(World world)
+    {
+        var mesh = new SurfaceMesh();
+        for (int z = -World.Half-2; z < World.Half+2; z++)
+        for (int x = -World.Half-2; x < World.Half+2; x++)
+        {
+            if (world.Height(x,z) > 0) continue;
+            int distance = 3;
+            for (int dz = -2; dz <= 2; dz++)
+            for (int dx = -2; dx <= 2; dx++)
+                if (Math.Abs(dx)+Math.Abs(dz) < distance && world.Height(x+dx,z+dz) > 0)
+                    distance = Math.Abs(dx)+Math.Abs(dz);
+            if (distance == 3) continue;
+            var color = distance == 1 ? new Color(127,183,162) : new Color(103,166,161);
+            float y = World.WaterLevel + .004f;
+            mesh.Quad(new(x,y,z),new(x,y,z+1),new(x+1,y,z+1),new(x+1,y,z),Vector3.Up,color);
+        }
+        shore?.Dispose(); shore = new(device,mesh);
+    }
     public void RebuildRoads(World world)
     {
         var m=new SurfaceMesh();
-        foreach(var o in world.Objects.Where(o=>o.Kind=="road"))m.Box(new(o.X,world.Height(o.X,o.Z)*World.Step+.008f,o.Z),new(1,.035f,1),new Color(212,190,149));
+        foreach(var o in world.Objects.Where(o=>o.Kind=="road"))
+            m.Box(new(o.X,world.Height(o.X,o.Z)*World.Step+.008f,o.Z),new(1,.02f,1),
+                Color.Lerp(new(174,147,105),new(193,169,125),(float)World.Hash(o.X,o.Z)));
         roads?.Dispose();roads=new(device,m);
     }
     public void RebuildGrid(World world)
@@ -34,8 +56,8 @@ public sealed class SceneSurfaces(GraphicsDevice device) : IDisposable
     }
     public void Draw(BasicEffect effect,bool showGrid)
     {
-        effect.LightingEnabled=false;foreach(var pass in effect.CurrentTechnique.Passes){pass.Apply();water.Draw(device);}
+        effect.LightingEnabled=false;foreach(var pass in effect.CurrentTechnique.Passes){pass.Apply();water.Draw(device);shore?.Draw(device);}
         effect.LightingEnabled=true;foreach(var pass in effect.CurrentTechnique.Passes){pass.Apply();roads?.Draw(device);if(showGrid)grid?.Draw(device);selection?.Draw(device);}
     }
-    public void Dispose(){water.Dispose();roads?.Dispose();grid?.Dispose();selection?.Dispose();}
+    public void Dispose(){water.Dispose();roads?.Dispose();grid?.Dispose();selection?.Dispose();shore?.Dispose();}
 }

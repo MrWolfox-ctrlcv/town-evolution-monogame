@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Town.Core.Residents;
 
 namespace Town.Core;
 
@@ -23,12 +24,22 @@ public static class SaveCodec
         if (data.Residents is not null)
         {
             var npcIds=new HashSet<int>();
+            var workplaces=new HashSet<int>();
             foreach (var npc in data.Residents)
-                if (npc is null || npc.Id < 1 || !npcIds.Add(npc.Id) || !double.IsFinite(npc.X) || !double.IsFinite(npc.Z)
-                    || !double.IsFinite(npc.Facing) || !double.IsFinite(npc.CarriedKg) || npc.CarriedKg < 0
+                if (npc is null || npc.Id is < 1 or int.MaxValue || !npcIds.Add(npc.Id) || !double.IsFinite(npc.X) || !double.IsFinite(npc.Z)
+                    || !double.IsFinite(npc.Facing) || !double.IsFinite(npc.CarriedKg) || npc.CarriedKg < 0 || npc.CarriedKg > (npc.CartId == 0 ? NpcConfig.MaxCarryKg : NpcConfig.CartCapacityKg) + 1e-6
                     || npc.Hunger is < 0 or > Residents.NpcConfig.HungerMax || npc.Stamina is < 0 or > Residents.NpcConfig.StaminaMax
                     || !World.Inside((int)MathF.Floor((float)npc.X), (int)MathF.Floor((float)npc.Z))
-                    || data.Heights[World.Index((int)MathF.Floor((float)npc.X), (int)MathF.Floor((float)npc.Z))] == 0)
+                    || data.Heights[World.Index((int)MathF.Floor((float)npc.X), (int)MathF.Floor((float)npc.Z))] == 0
+                    || !Enum.IsDefined((NpcTaskKind)npc.TaskKind) || npc.Label is null || npc.Label.Length > 100
+                    || npc.CartId < 0 || npc.CartId >= data.NextId
+                    || npc.Item is null || npc.Item.Length > 64
+                    || (NpcTaskKind)npc.TaskKind is NpcTaskKind.Process or NpcTaskKind.FetchSupplies && !NpcTasks.CanStaff(npc.Item)
+                    || npc.TaskKind == (int)NpcTaskKind.FetchSupplies && npc.DestinationId <= 0
+                    || npc.Workplace is { } work && (work.BuildingId < 1 || work.Recipe is null || !NpcTasks.CanStaff(work.Recipe) || !workplaces.Add(work.BuildingId))
+                    || npc.TaskKind != 0 && !World.Inside(npc.TargetX, npc.TargetZ)
+                    || npc.Cargo is { } cargo && (cargo.Any(p => !World.ItemNames.ContainsKey(p.Key) || p.Value is < 1 or > 120)
+                        || cargo.Sum(p => NpcConfig.WeightOf(p.Key) * p.Value) > (npc.CartId == 0 ? NpcConfig.MaxCarryKg : NpcConfig.CartCapacityKg) + 1e-6))
                     throw new FormatException("居民记录不合法");
         }
         if(data.Nature.Any(n=>n is null||!World.Inside(n.X,n.Z)||!double.IsFinite(n.Variant)||n.Variant is <0 or >1||!seen.Add(World.Index(n.X,n.Z))||data.Heights[World.Index(n.X,n.Z)]==0))throw new FormatException("天然植被记录不合法");

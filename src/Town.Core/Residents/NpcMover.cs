@@ -13,7 +13,7 @@ public static class NpcMover
         }
 
         var next = npc.Path[npc.PathIndex];
-        if (!NpcNavigation.Passable(world, next.X, next.Z))
+        if (NpcNavigation.StepCost(world, npc.CellX, npc.CellZ, next.X, next.Z) is null)
         {
             // 地形或建筑改变导致路径失效：原地清空，由上层重新寻路。
             npc.Path.Clear();
@@ -28,7 +28,13 @@ public static class NpcMover
         float targetX = next.X + .5f, targetZ = next.Z + .5f;
         float dx = targetX - npc.X, dz = targetZ - npc.Z;
         float distance = MathF.Sqrt(dx * dx + dz * dz);
-        float budget = npc.SpeedCellsPerSecond / NpcConfig.TicksPerSecond;
+        float speed = npc.SpeedCellsPerSecond;
+        if (npc.HasCart)
+        {
+            bool road = world.Occupant(npc.CellX, npc.CellZ)?.Kind == "road" && world.Occupant(next.X, next.Z)?.Kind == "road";
+            speed = (road ? NpcConfig.CartRoadSpeed : NpcConfig.CartGroundSpeed) * (1 - NpcConfig.LoadSlowdown * (float)npc.LoadRatio);
+        }
+        float budget = speed / NpcConfig.TicksPerSecond;
 
         if (distance <= budget || distance < 1e-4f)
         {

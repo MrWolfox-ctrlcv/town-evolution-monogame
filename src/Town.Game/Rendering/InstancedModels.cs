@@ -18,7 +18,9 @@ public readonly struct InstanceVertex(Matrix matrix) : IVertexType
         new VertexElement(48,VertexElementFormat.Vector4,VertexElementUsage.TextureCoordinate,7));
     VertexDeclaration IVertexType.VertexDeclaration => Declaration;
 }
-public sealed class InstanceBatch : IDisposable
+internal readonly record struct LeafMaterial(Vector3 Color,Vector2 CrownProfile);
+
+internal sealed class InstanceBatch : IDisposable
 {
     private readonly GraphicsDevice device;
     private DynamicVertexBuffer? buffer;
@@ -34,7 +36,7 @@ public sealed class InstanceBatch : IDisposable
         var data=matrices.Select(m=>new InstanceVertex(m)).ToArray();
         buffer.SetData(data,0,data.Length,SetDataOptions.Discard);Uploads++;
     }
-    public int Draw(Effect effect,Vector3 tint)
+    public int Draw(Effect effect,Vector3 tint,LeafMaterial? leaves=null)
     {
         if(Count==0||buffer is null)return 0;
         int calls=0;effect.Parameters["Tint"].SetValue(tint);
@@ -42,6 +44,11 @@ public sealed class InstanceBatch : IDisposable
         {
             var texture=(part.Effect as BasicEffect)?.Texture;
             if(texture is null)throw new InvalidOperationException("Content model is missing the baked palette/texture.");
+            // The leaf card supplies its alpha silhouette. Mipmapped transparent texels must not darken its paint.
+            bool leafSurface=leaves.HasValue&&texture.Name?.Contains("Tree_Leaves",StringComparison.Ordinal)==true;
+            var leaf=leaves.GetValueOrDefault();
+            effect.Parameters["LeafColor"].SetValue(leafSurface?new Vector4(leaf.Color,1):Vector4.Zero);
+            if(leafSurface)effect.Parameters["CrownProfile"].SetValue(leaf.CrownProfile);
             effect.Parameters["Palette"].SetValue(texture);
             device.SetVertexBuffers(new VertexBufferBinding(part.VertexBuffer,part.VertexOffset,0),new VertexBufferBinding(buffer,0,1));
             device.Indices=part.IndexBuffer;
@@ -53,12 +60,15 @@ public sealed class InstanceBatch : IDisposable
 }
 public sealed class InstancedModels(GraphicsDevice device,ContentManager content) : IDisposable
 {
+    public const string BroadleafAsset="approved-tree-7-lod";
     private readonly Dictionary<string,InstanceBatch> batches=[];
     private readonly Effect effect=content.Load<Effect>("Effects/Instanced");
     private readonly Dictionary<string,Matrix[]> previous=[];
     private InstanceBatch? preview;
     private string? previewAsset;
     private Matrix previewMatrix;
+    private InstanceBatch? movingCarts;
+    private Matrix[] previousCarts=[];
     public int DrawCalls {get;private set;}
     public int GeometryLoads {get;private set;}
     public int InstanceUploads=>batches.Values.Sum(b=>b.Uploads);
@@ -88,7 +98,7 @@ public sealed class InstancedModels(GraphicsDevice device,ContentManager content
         }
         foreach(var tree in world.LiveTrees)
         {
-            Add(tree.Variant>.5?"approved-pine-8":"approved-tree-7",new(tree.X+.5f,world.Height(tree.X,tree.Z)*World.Step,tree.Z+.5f),(float)tree.Variant*MathHelper.TwoPi,world.TreeScale(tree.X,tree.Z));
+            Add(tree.Variant>.5?"approved-pine-8":BroadleafAsset,new(tree.X+.5f,world.Height(tree.X,tree.Z)*World.Step,tree.Z+.5f),(float)tree.Variant*MathHelper.TwoPi,world.TreeScale(tree.X,tree.Z));
         }
         foreach(var p in world.Piles)Add($"pile-{p.Item}-{p.Amount}",new(p.X+.5f,world.Height(p.X,p.Z)*World.Step,p.Z+.5f));
         foreach(var p in world.Drops)Add($"pile-{p.Item}-1",new(p.X+p.OffsetX,Math.Max(World.WaterLevel,world.Height(p.X,p.Z)*World.Step)+.04f,p.Z+p.OffsetZ),0,.3f);
@@ -100,14 +110,31 @@ public sealed class InstancedModels(GraphicsDevice device,ContentManager content
             batch.Update(data);previous[key]=data;
         }
     }
+    public void SetResidentCarts(Matrix[] transforms)
+    {
+        if (previousCarts.AsSpan().SequenceEqual(transforms)) return;
+        movingCarts ??= new(device,content.Load<Model>("Models/handcart"));
+        movingCarts.Update(transforms);
+        previousCarts=transforms;
+    }
     public void Draw(Matrix viewProjection)
     {
         effect.Parameters["ViewProjection"].SetValue(viewProjection);
         effect.Parameters["AmbientColor"].SetValue(new Vector3(.66f,.69f,.62f));
         effect.Parameters["LightDirection"].SetValue(Vector3.Normalize(new(-.45f,-.82f,.35f)));DrawCalls=0;
         effect.Parameters["Opacity"].SetValue(1f);
-        foreach(var batch in batches.Values)DrawCalls+=batch.Draw(effect,Vector3.One);
+        foreach(var (asset,batch) in batches)
+        {
+            LeafMaterial? leaves=asset switch
+            {
+                BroadleafAsset => new(new(.46f,.61f,.25f),new(.78f,1.35f)),
+                "approved-pine-8" => new(new(.36f,.49f,.30f),new(.58f,1.24f)),
+                _ => null
+            };
+            DrawCalls+=batch.Draw(effect,Vector3.One,leaves);
+        }
+        if (movingCarts is { Count: > 0 }) DrawCalls+=movingCarts.Draw(effect,Vector3.One);
         if(preview is {Count:>0}){device.BlendState=BlendState.NonPremultiplied;device.DepthStencilState=DepthStencilState.DepthRead;effect.Parameters["Opacity"].SetValue(.55f);preview.Draw(effect,new(.85f,1,.65f));device.BlendState=BlendState.Opaque;device.DepthStencilState=DepthStencilState.Default;}
     }
-    public void Dispose(){preview?.Dispose();foreach(var b in batches.Values)b.Dispose();batches.Clear();}
+    public void Dispose(){preview?.Dispose();movingCarts?.Dispose();foreach(var b in batches.Values)b.Dispose();batches.Clear();}
 }

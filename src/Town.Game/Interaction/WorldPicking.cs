@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Town.Core;
+using Town.Game.Rendering;
 namespace Town.Game.Interaction;
 public sealed record WorldHit(string Type,int Id,int X,int Z,int FarmCell=-1);
 public static class WorldPicking
@@ -14,17 +15,17 @@ public static class WorldPicking
     public static string FarmAsset(FarmState f)=>f.Box?(f.Irrigated?"farm-with-box-water":"farm-with-box"):(f.Irrigated?"farm-cell-bed-water":"farm-cell-bed");
     public static string CropAsset(World w,CropCell c)=>$"crop-cell-{c.Crop}-"+(c.ReadyTick<=w.Clock?"ready":c.ReadyTick-w.Clock<=200?"young":"seedling");
     public static string NurseryAsset(World w,int id)=>w.Jobs.FirstOrDefault(j=>j.Id==id)is { } j?(j.ReadyTick<=w.Clock?"nursery-ready":"nursery-growing"):(w.Attachments.Any(a=>a.Id==id&&a.Stock.GetValueOrDefault("treeSeed")>0)?"nursery-seeded":"nursery-empty");
-    public static WorldHit? Pick(World world,MapCamera camera,Viewport viewport,Vector2 point,bool residents=false)
+    public static WorldHit? Pick(World world,MapCamera camera,Viewport viewport,Vector2 point,NpcRenderer? residents=null)
     {
         var start=viewport.Unproject(new(point,0),camera.Projection,camera.View,Matrix.Identity);var end=viewport.Unproject(new(point,1),camera.Projection,camera.View,Matrix.Identity);
         var ray=new Ray(start,Vector3.Normalize(end-start));float nearest=float.MaxValue;WorldHit? found=null;
-        if(residents)foreach(var npc in world.Npcs.All)
+        if(residents is not null)foreach(var npc in world.Npcs.All)
         {
-            var hit=ray.Intersects(new BoundingBox(new(npc.X-.3f,npc.Y,npc.Z-.3f),new(npc.X+.3f,npc.Y+1f,npc.Z+.3f)));
+            var hit=residents.Intersect(ray,npc);
             if(hit is float distance&&distance<nearest){nearest=distance;found=new("resident",npc.Id,npc.CellX,npc.CellZ);}
         }
         Matrix Transform(Vector3 p,float rotation=0,float scale=1)=>Matrix.CreateScale(scale)*Matrix.CreateRotationY(rotation)*Matrix.CreateTranslation(p);
-        void Mesh(string asset,Matrix transform,WorldHit hit){if(BakedGeometry.Intersect(asset,ray,transform)is float d&&d<nearest){nearest=d;found=hit;}}
+        void Mesh(string asset,Matrix transform,WorldHit hit){if(BakedGeometry.Intersect(asset,ray,transform,nearest)is float d){nearest=d;found=hit;}}
         foreach(var b in world.Objects.Where(o=>o.Kind!="road"))
         {
             var(w,d)=World.Footprint(b.Kind,b.Rotation);float y=world.Height(b.X,b.Z)*World.Step;var spec=World.Catalog[b.Kind];var farm=world.Farm(b.Id);float angle=b.Rotation*MathHelper.PiOver2;
@@ -40,7 +41,7 @@ public static class WorldPicking
                 for(int i=0;i<9;i++)if(farm.Cells[i]is { } c){var p=FarmCenter(b,i);Mesh(CropAsset(world,c),Transform(new(p.X,y,p.Z),angle),new("farm",b.Id,b.X,b.Z,i));}
             }
         }
-        foreach(var t in world.LiveTrees)Mesh(t.Variant>.5?"approved-pine-8":"approved-tree-7",Transform(new(t.X+.5f,world.Height(t.X,t.Z)*World.Step,t.Z+.5f),(float)t.Variant*MathHelper.TwoPi,world.TreeScale(t.X,t.Z)),new("tree",World.Index(t.X,t.Z),t.X,t.Z));
+        foreach(var t in world.LiveTrees)Mesh(t.Variant>.5?"approved-pine-8":InstancedModels.BroadleafAsset,Transform(new(t.X+.5f,world.Height(t.X,t.Z)*World.Step,t.Z+.5f),(float)t.Variant*MathHelper.TwoPi,world.TreeScale(t.X,t.Z)),new("tree",World.Index(t.X,t.Z),t.X,t.Z));
         foreach(var p in world.Piles)
         {
             float y=world.Height(p.X,p.Z)*World.Step;Mesh($"pile-{p.Item}-{p.Amount}",Transform(new(p.X+.5f,y,p.Z+.5f)),new("pile",p.Id,p.X,p.Z));

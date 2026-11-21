@@ -1,0 +1,164 @@
+{
+  "unitsPerTile": 32,
+  "palette": {
+    "skin": "E1B279",
+    "skinShade": "C48C60",
+    "eye": "3B3026",
+    "hair": "604731",
+    "shirt": "6D8D9E",
+    "seam": "526D78",
+    "sleeve": "658391",
+    "pants": "4E626C",
+    "boot": "59432C",
+    "sole": "42372B",
+    "hat": "C49642",
+    "brim": "B78538",
+    "crate": "A66E2D",
+    "crateSlat": "C48B41"
+  },
+  "outfits": [
+    {},
+    {
+      "shirt": "AA674F",
+      "seam": "814838",
+      "sleeve": "985943",
+      "pants": "744E3D",
+      "hat": "926749",
+      "brim": "86593D"
+    }
+  ],
+  "parts": [
+    {
+      "name": "body",
+      "joint": "Body",
+      "pivot": [0, 10, 0],
+      "boxes": [
+        { "min": [-5, 10, -3.5], "max": [5, 16.5, 3.5], "color": "shirt" },
+        { "min": [-6, 16, -4], "max": [6, 21, 4], "color": "shirt" },
+        { "min": [-5.2, 10, -3.7], "max": [5.2, 11.2, 3.7], "color": "seam" },
+        { "min": [-2, 20.4, -2], "max": [2, 22.5, 2], "color": "skinShade" },
+        { "min": [10.45, 12, 4], "max": [10.45, 20.5, 4.24], "color": "seam" }
+      ]
+    },
+    {
+      "name": "head",
+      "joint": "Head",
+      "pivot": [0, 20, 0],
+      "boxes": [
+        { "min": [-5.3, 22.2, -4.5], "max": [5.3, 28.5, 4.5], "color": "skin" },
+        { "min": [-4.2, 21.5, -3.7], "max": [4.2, 22.3, 4.1], "color": "skin" },
+        { "min": [-5.35, 24, -5.2], "max": [5.35, 28.5, -3.8], "color": "hair" },
+        { "min": [-5.85, 26, -4.6], "max": [-5.3, 28.5, 1], "color": "hair" },
+        { "min": [5.3, 26, -4.6], "max": [5.85, 28.5, 1], "color": "hair" },
+        { "min": [-5.9, 23.9, 10.7], "max": [-5.2, 25.7, 1], "color": "skinShade" },
+        { "min": [5.2, 23.9, 10.7], "max": [5.9, 25.7, 1], "color": "skinShade" },
+        { "min": [-3.6, 25.1, 4.5], "max": [-2.0, 26.2, 4.75], "color": "eye" },
+        { "min": [2.0, 25.1, 4.5], "max": [3.6, 26.2, 4.75], "color": "eye" },
+        { "min": [10.8, 23.8, 4.4], "max": [10.8, 25.1, 5.4], "color": "skinShade" }
+      ]
+    },
+    {
+      "name": "straw-hat",
+      "joint": "Head",
+      "pivot": [0, 20, 0],
+      "outfit": 0,
+      "boxes": [
+        { "min": [-9, 28, -7], "max": [9, 29.2, 7], "color": "brim" },
+        { "min": [-6.6, 29.2, -5.5], "max": [6.6, 32, 5.5], "color": "hat" }
+      ]
+    },
+    {
+      "name": "work-cap",
+      "joint": "Head",
+      "pivot": [0, 20, 0],
+      "outfit": 1,
+      "boxes": [
+        { "min": [-6.4, 28, -5.6], "max": [6.4, 31.7, 5.7], "color": "hat" },
+        { "min": [-6.4, 27.8, 5.5], "max": [6.4, 28.9, 8], "color": "brim" }
+      ]
+    },
+    {
+      "name": "left-arm",
+      "joint": "LeftArm",
+      "pivot": [-7, 20, 0],
+      "boxes": [
+        { "min": [-9.4, 15.7, -2.6], "max": [-5.6, 20.1, 2.6], "color": "sleeve" }
+      ]
+    },
+    {
+      "name": "left-forearm",
+      "joint": "Forearm",
+      "parent": "left-arm",
+      "pivot": [-7.5, 16.2, 0],
+      "boxes": [
+        { "min": [-9.15, 11.5, -1.75], "max": [-6.05, 16.4, 1.75], "color": "skin" }
+      ]
+    },
+    {
+      "name": "right-arm",
+      "joint": "RightArm",
+      "pivot": [7, 20, 0],
+      "boxes": [
+        { "min": [5.6, 15.7, -2.6], "max": [9.4, 20.1, 2.6], "color": "sleeve" }
+      ]
+    },
+    {
+      "name": "right-forearm",
+      "joint": "Forearm",
+      "parent": "right-arm",
+      "pivot": [7.5, 16.2, 0],
+      "boxes": [
+        { "min": [6.05, 11.5, -1.75], "max": [9.15, 16.4, 1.75], "color": "skin" }
+      ]
+    },
+    {
+      "name": "left-leg",
+      "joint": "LeftLeg",
+      "pivot": [-3, 10, 0],
+      "boxes": [
+        { "min": [-5.3, 4.7, -2.65], "max": [10.65, 10.3, 2.65], "color": "pants" }
+      ]
+    },
+    {
+      "name": "left-shin",
+      "joint": "LeftShin",
+      "parent": "left-leg",
+      "pivot": [-3, 5.2, 0],
+      "boxes": [
+        { "min": [-4.85, 1.55, -2.2], "max": [-1.2, 5.4, 2.2], "color": "pants" },
+        { "min": [-5, 10.6, -2.25], "max": [-1, 2.25, 4.25], "color": "boot" },
+        { "min": [-5, 0, -2.25], "max": [-1, 10.65, 4.25], "color": "sole" }
+      ]
+    },
+    {
+      "name": "right-leg",
+      "joint": "RightLeg",
+      "pivot": [3, 10, 0],
+      "boxes": [
+        { "min": [10.65, 4.7, -2.65], "max": [5.3, 10.3, 2.65], "color": "pants" }
+      ]
+    },
+    {
+      "name": "right-shin",
+      "joint": "RightShin",
+      "parent": "right-leg",
+      "pivot": [3, 5.2, 0],
+      "boxes": [
+        { "min": [1.2, 1.55, -2.2], "max": [4.85, 5.4, 2.2], "color": "pants" },
+        { "min": [1, 10.6, -2.25], "max": [5, 2.25, 4.25], "color": "boot" },
+        { "min": [1, 0, -2.25], "max": [5, 10.65, 4.25], "color": "sole" }
+      ]
+    },
+    {
+      "name": "carried-crate",
+      "joint": "Body",
+      "pivot": [0, 18, 9],
+      "loadedOnly": true,
+      "boxes": [
+        { "min": [-6, 14, 5], "max": [6, 21, 13], "color": "crate" },
+        { "min": [-6, 15, 13], "max": [6, 17, 13.5], "color": "crateSlat" },
+        { "min": [-6, 18, 13], "max": [6, 20, 13.5], "color": "crateSlat" }
+      ]
+    }
+  ]
+}

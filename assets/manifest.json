@@ -1510,6 +1510,18 @@
       ],
       "vertices": 6432,
       "triangles": 2700
+    },
+    {
+      "id": "approved-tree-7-lod",
+      "sourceBytes": 1875264,
+      "sha256": "85e820ac6630f226e8a2dcc2fe91b47d84c2325b1cfd323b11abba7d1034bcb6",
+      "footprint": [
+        1,
+        1
+      ],
+      "derivedFrom": "approved-tree-7",
+      "vertices": 2883,
+      "triangles": 1453
     }
   ]
 }
